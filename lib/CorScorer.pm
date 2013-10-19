@@ -14,11 +14,11 @@ package CorScorer;
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 #
-# Modified  in 2013 for v1.07 by Sebastian Martschat, 
+# Modified in 2013 for v1.07 by Sebastian Martschat, 
 #   sebastian.martschat <at> h-its.org
 #
-# Revised in July, 2013 by Xiaoqiang Luo (xql@google.com) to create v6.0.
-# See comments under $VERSION for modifcations.  
+# Revised in July, 2013 by Xiaoqiang Luo (xql <at> google.com) to create v6.0.
+# See comments under $VERSION for modifications.  
 
 use strict;
 use Algorithm::Munkres;
@@ -28,11 +28,11 @@ print "version: ".$VERSION."\n";
 
 
 #
-# 7.0 Removed code to compute *_cs metrics
+#  7.0 Removed code to compute *_cs metrics
 #
-# 6.0 The directory hosting the scorer is under v6 and internal $VERSION is 
-#     set to "6.0." 
-#     Changes: 
+#  6.0 The directory hosting the scorer is under v6 and internal $VERSION is 
+#      set to "6.0." 
+#      Changes: 
 #      - 'ceafm', 'ceafe' and 'bcub' in the previous version are renamed 
 #        'ceafm_cs', 'ceafe_cs', and 'bcub_cs', respectively. 
 #      - 'ceafm', 'ceafe' and 'bcub' are implemented without (Cai&Strube 2010)
@@ -40,13 +40,13 @@ print "version: ".$VERSION."\n";
 #         just fine. 
 #
 # 1.07 Modifications to implement BCUB and CEAFM 
-#     exactly as proposed by (Cai & Strube, 2010).
+#      exactly as proposed by (Cai & Strube, 2010).
 # 1.06 ?
-# 1.05  Modification of IdentifMentions in order to correctly evaluate the
+# 1.05 Modification of IdentifMentions in order to correctly evaluate the
 #     outputs with detected mentions. Based on (Cai & Strubbe, 2010)
-# 1.04  Some output corrections in BLANC functions. Changed package name to "Scorer"
-# 1.03  Detects mentions that start in a document but do not end
-# 1.02  Corrected Bcub bug. It fails when the key file does not have any mention
+# 1.04 Some output corrections in BLANC functions. Changed package name to "Scorer"
+# 1.03 Detects mentions that start in a document but do not end
+# 1.02 Corrected BCUB bug. It fails when the key file does not have any mention
 
 
 
@@ -57,15 +57,15 @@ my $RESPONSE_COLUMN = -1;
 my $KEY_COLUMN = -1;
 
 
-# Score. Scores the results of a coreference resultion system
+# Score. Scores the results of a coreference resolution system
 # Input: Metric, keys file, response file, [name]
 #        Metric: the metric desired to evaluate:
 #                muc: MUCScorer (Vilain et al, 1995)
-#                bcub: B-Cubed (Bagga and Baldwin
+#                bcub: B-Cubed (Bagga and Baldwin, 1998)
 #                ceafm: CEAF (Luo et al, 2005) using mention-based similarity
 #                ceafe: CEAF (Luo et al, 2005) using entity-based similarity
 #        keys file: file with expected coreference chains in SemEval format
-#        response file: file with output of corefrence system (SemEval format)
+#        response file: file with output of coreference system (SemEval format)
 #        name: [optional] the name of the document to score. If name is not
 #              given, all the documents in the dataset will be scored.
 #
@@ -147,7 +147,7 @@ sub GetIndex
 #               [ [5,5], [25,27], [31,31] ], # <-- entity 1
 # ...
 # );
-# entity 0 is composed by 3 mentions: from token 1 to 3, token 45 and
+# entity 0 is composed of 3 mentions: from token 1 to 3, token 45 and
 # from token 57 to 62 (both included)
 #
 # if $name is not specified, the output is a hash including each file
@@ -320,27 +320,6 @@ sub IdentifMentions
     }
   }
 
-#
-# bug: someone can add multiple entities of the same id, and can inflate score
-#
-
-#   # correct identification: Exact bound limits
-#   my $exact = 0;
-#   foreach my $entity (@$response) {
-#     foreach my $mention (@$entity) {
-#       if (defined($id{"$mention->[0],$mention->[1]"}) &&
-#         !$assigned[$id{"$mention->[0],$mention->[1]"}]) {
-#         $assigned[$id{"$mention->[0],$mention->[1]"}] = 1;
-#         $map{"$mention->[0],$mention->[1]"} = $id{"$mention->[0],$mention->[1]"};
-#         $exact++;
-#       }
-#     }
-#   }
-
-
-#
-# fix: remove duplicate mentions
-#
   # correct identification: Exact bound limits
   my $exact = 0;
   foreach my $entity (@$response) {
@@ -386,32 +365,6 @@ sub IdentifMentions
   # Partial identificaiton: Inside bounds and including the head
   my $part = 0;
 
-# since we will not be giving partial credit for partial mentions in
-# the official version of CoNLL evaluation, the following block has
-# been commented out
-
-#   foreach my $entity (@$response) {
-#     foreach my $mention (@$entity) {
-#       my $ini = $mention->[0];
-#       my $end = $mention->[1];
-#       my $head = $mention->[2];
-#       next if (defined($map{"$ini,$end"}));
-#       foreach my $ent (@$keys) {
-#         foreach my $m (@$ent) {
-#           next if ($assigned[$id{"$m->[0],$m->[1]"}]);
-#           if ($ini >= $m->[0] && $ini <= $m->[1] &&
-#             $end >= $m->[0] && $end <= $m->[1] &&
-#             $ini <= $m->[2] && $end >= $m->[2]) {
-#             $map{"$ini,$end"} = $id{"$m->[0],$m->[1]"};
-#             $assigned[$id{"$m->[0],$m->[1]"}] = 1;
-#             $part++;
-#             last;
-#           }
-#           last if (defined($map{"$ini,$end"}));
-#         }
-#       }
-#     }
-#   }
 
   # Each mention in response not included in keys has a new ID
   my $mresp = 0;
@@ -438,10 +391,8 @@ sub IdentifMentions
 
   if (defined($totals)) {
     $totals->{recallDen} += scalar(keys(%id));
-    #$totals->{recallNum} += $exact + 0.5 * $part;
     $totals->{recallNum} += $exact;
     $totals->{precisionDen} += scalar(keys(%map));
-    #$totals->{precisionNum} += $exact + 0.5 * $part;
     $totals->{precisionNum} += $exact;
     $totals->{precisionExact} += $exact;
     $totals->{precisionPart} += $part;
@@ -552,7 +503,6 @@ sub IdentifMentions
     }
     @rChains = @newrc;
 
-#   print "Addkey: $addkey, addinv: $addinv, delsin: $delsin\n" if ($VERBOSE);
 
   return (\@kChains, \@kChainsWithSingletonsFromResponse, \@rChains, \@rChainsWithoutMentionsNotInKey, \@kChainsOrig, \@rChainsOrig);
 }
@@ -594,9 +544,12 @@ sub Indexa
   return \%index;
 }
 
-# Es consideren els "links" dintre de cada cadena de coreferents. La cadena
-# A-B-C-D te 3 links: A-B, B-C i C-D. Recall: num links correctes / esperats
-# Precisio: num links correctes / marcats
+# Consider the "links" within every coreference chain. For example,
+# chain A-B-C-D has 3 links: A-B, B-C and C-D. 
+# Recall: num correct links / num expected links. 
+# Precision: num correct links / num output links
+
+
 sub MUCScorer
 {
   my ($keys, $keysPrecision, $response, $responseRecall) = @_;
@@ -617,9 +570,6 @@ sub MUCScorer
           $correct++;
           last;
         }
-#         else {
-#           print "$i $id_i $kIndex->{$id_i} =? $j $id_j $kIndex->{$id_j}\n";
-#         }
       }
     }
   }
@@ -642,8 +592,8 @@ sub MUCScorer
   return ($correct, $keylinks, $correct, $reslinks);
 }
 
-# Per cada mencio de la resposta es calcula la precisio i per cada mencio a les
-# keys es calcula el recall
+# Compute precision for every mention in the response, and compute
+# recall for every mention in the keys
 sub BCUBED
 {
   my ($keys, $response) = @_;
