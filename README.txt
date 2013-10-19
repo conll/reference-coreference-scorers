@@ -86,8 +86,8 @@ OUTPUT
    Precision = (a + 0.5 * b) / #response mentions
    F1 = 2 * Recall * Precision / (Recall + Precision)
 
-   For the official CoNLL evaluation, however, we will only consider
-   mentions with exact boundaries as being correct.
+   The official CoNLL evaluation only considered mentions with exact
+   boundaries as being correct.
 
 SEE ALSO
 
@@ -100,9 +100,9 @@ SEE ALSO
 
 
 AUTHOR
-   Emili Sapena, Universitat Politècnica de Catalunya
-   http://www.lsi.upc.edu/~esapena
-   esapena <at> lsi.upc.edu
+   Emili Sapena, Universitat Politècnica de Catalunya, http://www.lsi.upc.edu/~esapena, esapena <at> lsi.upc.edu
+   Sebastian Martschat, sebastian.martschat <at> h-its.org
+   Xiaoqiang Luo, xql <at> google.com
 
 
 COPYRIGHT AND LICENSE
@@ -120,5 +120,3 @@ COPYRIGHT AND LICENSE
    with this program; if not, write to the Free Software Foundation, Inc.,
    59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-  Modified in 2013 for v1.07 by Sebastian Martschat,
-    sebastian.martschat <at> h-its.org
