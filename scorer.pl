@@ -3,7 +3,7 @@
 BEGIN {
     $d = $0;
     $d =~ s/\/[^\/][^\/]*$//g;
-    push(@INC, $d."/lib");
+    unshift(@INC, $d."/lib");
 }
 
 use strict;
@@ -19,6 +19,8 @@ use: scorer.pl <metric> <keys_file> <response_file> [name]
     bcub: B-Cubed (Bagga and Baldwin, 1998)
     ceafm: CEAF (Luo et al, 2005) using mention-based similarity
     ceafe: CEAF (Luo et al, 2005) using entity-based similarity
+    blanc: BLANC
+    blanc_sys: System BLANC
     all: uses all the metrics to score
 
   keys_file: file with expected coreference chains in SemEval format
@@ -35,14 +37,14 @@ use: scorer.pl <metric> <keys_file> <response_file> [name]
 }
 
 my $metric = shift (@ARGV);
-if ($metric !~ /^(muc|bcub|ceafm|ceafe|all)/i) {
+if ($metric !~ /^(muc|bcub|ceafm|ceafe|blanc|blanc_sys|all)/i) {
   print "Invalid metric\n";
   exit;
 }
 
 
 if ($metric eq 'all') {
-  foreach my $m ('muc', 'bcub', 'ceafm', 'ceafe') {
+  foreach my $m ('muc', 'bcub', 'ceafm', 'ceafe', 'blanc', 'blanc_sys') {
     print "\nMETRIC $m:\n";
     &CorScorer::Score( $m, @ARGV );
   }
