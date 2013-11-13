@@ -22,6 +22,9 @@ package CorScorer;
 
 use strict;
 use Algorithm::Munkres;
+use Data::Dumper;
+#use Algorithm::Combinatorics qw(combinations);
+use Math::Combinatorics;
 
 our $VERSION = '7.0';
 print "version: ".$VERSION."\n";
@@ -51,7 +54,7 @@ print "version: ".$VERSION."\n";
 
 
 # global variables
-my $VERBOSE = 1;
+my $VERBOSE = 2;
 my $HEAD_COLUMN = 8;
 my $RESPONSE_COLUMN = -1;
 my $KEY_COLUMN = -1;
@@ -79,6 +82,14 @@ my $KEY_COLUMN = -1;
 sub Score
 {
   my ($metric, $kFile, $rFile, $name) = @_;
+
+  if (lc($metric) eq 'blanc') {
+    return ScoreBLANC($kFile, $rFile, $name);
+  }
+
+  if (lc($metric) eq 'blanc_sys') {
+    return ScoreBLANC_SYS($kFile, $rFile, $name);
+  }
 
   my %idenTotals = (recallDen => 0, recallNum => 0, precisionDen => 0, precisionNum => 0);
   my ($acumNR, $acumDR, $acumNP, $acumDP) = (0,0,0,0);
@@ -773,5 +784,800 @@ sub ShowRPF
   print "\tF1: " . int($f1*10000)/100 . "\%\n";
   print "--------------------------------------------------------------------------\n";
 }
+
+
+
+sub ScoreBLANC
+{
+  my ($kFile, $rFile, $name) = @_;
+  my ($acumNRa, $acumDRa, $acumNPa, $acumDPa) = (0,0,0,0);
+  my ($acumNRr, $acumDRr, $acumNPr, $acumDPr) = (0,0,0,0);
+  my %idenTotals = (recallDen => 0, recallNum => 0, precisionDen => 0, precisionNum => 0);
+
+  if (defined($name) && $name ne 'none') {
+    print "$name:\n" if ($VERBOSE);
+    my $keys = GetCoreference($kFile, $KEY_COLUMN, $name);
+    my $response = GetCoreference($rFile, $RESPONSE_COLUMN, $name);
+    my ($keyChains, $keyChainsWithSingletonsFromResponse, $responseChains, $responseChainsWithoutMentionsNotInKey, $keyChainsOrig, $responseChainsOrig) = IdentifMentions($keys, $response, \%idenTotals);
+    ($acumNRa, $acumDRa, $acumNPa, $acumDPa, $acumNRr, $acumDRr, $acumNPr, $acumDPr) = BLANC($keyChainsWithSingletonsFromResponse, $responseChains);
+  }
+  else {
+    my $kIndexNames = GetFileNames($kFile);
+    my $rIndexNames = GetFileNames($rFile);
+
+    $VERBOSE = 0 if ($name eq 'none');
+    foreach my $iname (keys(%{$kIndexNames})) {
+      my $keys = GetCoreference($kFile, $KEY_COLUMN, $iname, $kIndexNames->{$iname});
+      my $response = GetCoreference($rFile, $RESPONSE_COLUMN, $iname, $rIndexNames->{$iname});
+
+      print "$name:\n" if ($VERBOSE);
+      my ($keyChains, $keyChainsWithSingletonsFromResponse, $responseChains, $responseChainsWithoutMentionsNotInKey, $keyChainsOrig, $responseChainsOrig) = IdentifMentions($keys, $response, \%idenTotals);
+      my ($nra, $dra, $npa, $dpa, $nrr, $drr, $npr, $dpr) = BLANC($keyChainsWithSingletonsFromResponse, $responseChains);
+
+      $acumNRa += $nra;
+      $acumDRa += $dra;
+      $acumNPa += $npa;
+      $acumDPa += $dpa;
+      $acumNRr += $nrr;
+      $acumDRr += $drr;
+      $acumNPr += $npr;
+      $acumDPr += $dpr;
+    }
+  }
+
+  if ($VERBOSE || $name eq 'none') {
+    print "\n====== TOTALS =======\n";
+    print "Identification of Mentions: ";
+    ShowRPF($idenTotals{recallNum}, $idenTotals{recallDen}, $idenTotals{precisionNum},
+          $idenTotals{precisionDen});
+    print "\nCoreference:\n";
+    print "Coreference links: ";
+    ShowRPF($acumNRa, $acumDRa, $acumNPa, $acumDPa);
+    print "Non-coreference links: ";
+    ShowRPF($acumNRr, $acumDRr, $acumNPr, $acumDPr);
+    print "BLANC: ";
+
+    my $Ra = ($acumDRa) ? $acumNRa/$acumDRa : -1;
+    my $Rr = ($acumDRr) ? $acumNRr/$acumDRr : -1;
+    my $Pa = ($acumDPa) ? $acumNPa/$acumDPa : 0;
+    my $Pr = ($acumDPr) ? $acumNPr/$acumDPr : 0;
+
+    my $R = ($Ra + $Rr) / 2;
+    my $P = ($Pa + $Pr) / 2;
+
+    my $Fa = ($Pa + $Ra) ? 2 * $Pa * $Ra / ($Pa + $Ra) : 0;
+    my $Fr = ($Pr + $Rr) ? 2 * $Pr * $Rr / ($Pr + $Rr) : 0;
+
+    my $f1 = ($Fa + $Fr) / 2;
+
+    if ($Ra == -1 && $Rr == -1) {
+      $R = 0;
+      $P = 0;
+      $f1 = 0;
+    }
+    elsif ($Ra == -1) {
+      $R = $Rr;
+      $P = $Pr;
+      $f1 = $Fr;
+    }
+    elsif ($Rr == -1) {
+      $R = $Ra;
+      $P = $Pa;
+      $f1 = $Fa;
+    }
+
+    ShowRPF($R, 1, $P, 1, $f1);
+  }
+
+  return ($acumNRa, $acumDRa, $acumNPa, $acumDPa, $acumNRr, $acumDRr, $acumNPr, $acumDPr);
+}
+
+
+
+
+sub BLANC
+{
+  my ($keys, $response) = @_;
+  my ($ga, $gr, $ba, $br) = (0, 0, 0, 0);
+
+  # Each possible pair of mentions
+  my $kIndex = Indexa($keys);
+  my $rIndex = Indexa($response);
+
+  my @ri = keys(%{$rIndex});
+  for (my $i = 0; $i < @ri - 1; $i++) {
+    my $m_i = $ri[$i];
+    for (my $j = $i+1; $j < @ri; $j++) {
+      my $m_j = $ri[$j];
+      # atraction
+      if ($rIndex->{$m_i} == $rIndex->{$m_j}) {
+        if ($kIndex->{$m_i} == $kIndex->{$m_j}) {
+          $ga++;
+        }
+        else {
+          $ba++;
+        }
+      }
+      # repulsion
+      else {
+        if ($kIndex->{$m_i} != $kIndex->{$m_j}) {
+          $gr++;
+        }
+        else {
+          $br++;
+        }
+      }
+    }
+  }
+
+  if ($VERBOSE) {
+    print "Coreference links: ";
+    ShowRPF($ga, ($ga + $br), $ga, ($ga + $ba));
+    print "Non-coreference links: ";
+    ShowRPF($gr, ($gr + $ba), $gr, ($gr + $br));
+    print "Mean: ";
+
+    my $Pa = ($ga + $ba) ? $ga / ($ga + $ba) : 0;
+    my $Pr = ($gr + $br) ? $gr / ($gr + $br) : 0;
+    my $Ra = ($ga + $br) ? $ga / ($ga + $br) : -1;
+    my $Rr = ($gr + $ba) ? $gr / ($gr + $ba) : -1;
+
+    my $R = ($Ra + $Rr) / 2;
+    my $P = ($Pa + $Pr) / 2;
+    my $Fa = ($Pa + $Ra) ? 2 * $Pa * $Ra / ($Pa + $Ra) : 0;
+    my $Fr = ($Pr + $Rr) ? 2 * $Pr * $Rr / ($Pr + $Rr) : 0;
+    my $f1 = ($Fa + $Fr) / 2;
+
+    if ($Ra == -1 && $Rr == -1) {
+      $R = 0;
+      $P = 0;
+      $f1 = 0;
+    }
+    elsif ($Ra == -1) {
+      $R = $Rr;
+      $P = $Pr;
+      $f1 = $Fr;
+    }
+    elsif ($Rr == -1) {
+      $R = $Ra;
+      $P = $Pa;
+      $f1 = $Fa;
+    }
+    ShowRPF($R, 1, $P, 1, $f1);
+  }
+
+  return ($ga, ($ga + $br), $ga, ($ga + $ba), $gr, ($gr + $ba), $gr, ($gr + $br));
+}
+
+
+
+
+# NEW
+sub ScoreBLANC_SYS
+{
+  my ($kFile, $rFile, $name) = @_;
+  my ($acumNRa, $acumDRa, $acumNPa, $acumDPa) = (0,0,0,0);
+  my ($acumNRr, $acumDRr, $acumNPr, $acumDPr) = (0,0,0,0);
+  my %idenTotals = (recallDen => 0, recallNum => 0, precisionDen => 0, precisionNum => 0);
+
+  if (defined($name) && $name ne 'none') {
+    print "$name:\n" if ($VERBOSE);
+    my $keys = GetCoreference($kFile, $KEY_COLUMN, $name);
+    my $response = GetCoreference($rFile, $RESPONSE_COLUMN, $name);
+    my ($keyChains, $keyChainsWithSingletonsFromResponse, $responseChains, $responseChainsWithoutMentionsNotInKey, $keyChainsOrig, $responseChainsOrig) = IdentifMentions($keys, $response, \%idenTotals);
+    ($acumNRa, $acumDRa, $acumNPa, $acumDPa, $acumNRr, $acumDRr, $acumNPr, $acumDPr) = BLANC_SYS($keyChainsOrig, $responseChainsOrig);
+  }
+  else {
+    my $kIndexNames = GetFileNames($kFile);
+    my $rIndexNames = GetFileNames($rFile);
+
+    $VERBOSE = 0 if ($name eq 'none');
+    foreach my $iname (keys(%{$kIndexNames})) {
+      my $keys = GetCoreference($kFile, $KEY_COLUMN, $iname, $kIndexNames->{$iname});
+      my $response = GetCoreference($rFile, $RESPONSE_COLUMN, $iname, $rIndexNames->{$iname});
+
+      print "$name:\n" if ($VERBOSE);
+      my ($keyChains, $keyChainsWithSingletonsFromResponse, $responseChains, $responseChainsWithoutMentionsNotInKey, $keyChainsOrig, $responseChainsOrig) = IdentifMentions($keys, $response, \%idenTotals);
+      my ($nra, $dra, $npa, $dpa, $nrr, $drr, $npr, $dpr) = BLANC_SYS($keyChainsOrig, $responseChainsOrig);
+
+      $acumNRa += $nra;
+      $acumDRa += $dra;
+      $acumNPa += $npa;
+      $acumDPa += $dpa;
+      $acumNRr += $nrr;
+      $acumDRr += $drr;
+      $acumNPr += $npr;
+      $acumDPr += $dpr;
+    }
+  }
+
+  if ($VERBOSE || $name eq 'none') {
+    print "\n====== TOTALS =======\n";
+    print "Identification of Mentions: ";
+    ShowRPF($idenTotals{recallNum}, $idenTotals{recallDen}, $idenTotals{precisionNum},
+          $idenTotals{precisionDen});
+    print "\nCoreference:\n";
+    print "Coreference links: ";
+    ShowRPF($acumNRa, $acumDRa, $acumNPa, $acumDPa);
+    print "Non-coreference links: ";
+    ShowRPF($acumNRr, $acumDRr, $acumNPr, $acumDPr);
+    print "BLANC_SYS: ";
+
+    my $Ra = ($acumDRa) ? $acumNRa/$acumDRa : -1;
+    my $Rr = ($acumDRr) ? $acumNRr/$acumDRr : -1;
+    my $Pa = ($acumDPa) ? $acumNPa/$acumDPa : 0;
+    my $Pr = ($acumDPr) ? $acumNPr/$acumDPr : 0;
+
+    my $R = ($Ra + $Rr) / 2;
+    my $P = ($Pa + $Pr) / 2;
+
+    my $Fa = ($Pa + $Ra) ? 2 * $Pa * $Ra / ($Pa + $Ra) : 0;
+    my $Fr = ($Pr + $Rr) ? 2 * $Pr * $Rr / ($Pr + $Rr) : 0;
+
+    my $f1 = ($Fa + $Fr) / 2;
+
+    if ($Ra == -1 && $Rr == -1) {
+      $R = 0;
+      $P = 0;
+      $f1 = 0;
+    }
+    elsif ($Ra == -1) {
+      $R = $Rr;
+      $P = $Pr;
+      $f1 = $Fr;
+    }
+    elsif ($Rr == -1) {
+      $R = $Ra;
+      $P = $Pa;
+      $f1 = $Fa;
+    }
+
+    ShowRPF($R, 1, $P, 1, $f1);
+  }
+
+  return ($acumNRa, $acumDRa, $acumNPa, $acumDPa, $acumNRr, $acumDRr, $acumNPr, $acumDPr);
+}
+
+
+
+
+sub cartesian {
+    my @C = map { [ $_ ] } @{ shift @_ };
+
+    foreach (@_) {
+        my @A = @$_;
+
+        @C = map { my $n = $_; map { [ $n, @$_ ] } @C } @A;
+    }
+
+    return @C;
+}
+
+
+
+sub BLANC_SYS
+{
+  my ($keys, $response) = @_;
+  my ($ga, $gr, $ba, $br) = (0, 0, 0, 0);
+
+
+	my $key_coreference_links = {};
+	my $key_non_coreference_links = {};
+
+	my $response_coreference_links = {};
+	my $response_non_coreference_links = {};
+
+
+	# prints the list containing lists of chains in key
+	print "list containing list of chains in key:\n";
+  print Dumper $keys;
+
+	print "each key chain printed individually:\n";
+	foreach my $z (@$keys)
+	{
+			print Dumper $z;
+	}
+
+	print "list containing list of chains in response:\n";
+  print Dumper $response;
+
+	print "each response chain printed individually:\n";
+	foreach my $z (@$response)
+	{
+			print Dumper $z;
+	}
+	print "---------------------------------------------------------------------------------" . "\n";
+
+
+	print "combinations of links for each chain in the key:\n";
+	for my $kkk (@$keys)
+	{
+			my $ccombinat = Math::Combinatorics->new(count => 2,
+																							data => [@$kkk],
+					);
+
+			while(my @zcombo = $ccombinat->next_combination)
+			{
+					print Dumper [@zcombo];
+					my @zzcombo = sort {$a <=> $b} @zcombo;
+					
+					$key_coreference_links->{$zzcombo[0] . "-" . $zzcombo[1]} = 1;
+			}
+
+			print "................................................................................\n";
+	}
+
+	print Dumper $key_coreference_links;
+	print "********************************************************************************\n";
+
+
+	print "---------------------------------------------------------------------------------" . "\n";
+	print "combinations of links for each chain in the response:\n";
+	for my $rrr (@$response)
+	{
+			my $ccombinat = Math::Combinatorics->new(count => 2,
+																							 data => [@$rrr],
+					);
+
+			while(my @zcombo = $ccombinat->next_combination)
+			{
+					print Dumper [@zcombo];
+					my @zzcombo = sort {$a <=> $b} @zcombo;
+					
+					$response_coreference_links->{$zzcombo[0] . "-" . $zzcombo[1]} = 1;
+			}
+
+			print "................................................................................\n";
+	}
+
+	print Dumper $response_coreference_links;
+	print "********************************************************************************\n";
+
+
+
+
+
+
+	my $number_chains_in_key = @$keys;
+	print "number chains in key: " . $number_chains_in_key . "\n";
+
+
+	my @s = (0..$number_chains_in_key - 1);
+	my $ss = join(' ', @s);
+	my @n = split(' ', $ss);
+
+	my $combinat = Math::Combinatorics->new(count => 2,
+																					data => [@n],
+			);
+
+	print "combinations of 2 from: ".join(" ",@n)."\n";
+	print "------------------------".("--" x scalar(@n))."\n";
+
+
+	while(my @combo = $combinat->next_combination){
+
+			my @kcombo = ();
+			foreach my $comboo (@combo)
+			{
+					push(@kcombo, @$keys[$comboo]);
+					#print Dumper $k[$comboo];
+					#print $comboo;
+			}
+
+			my $lkcombo = @kcombo;
+			print "length: " . $lkcombo . "\n";
+			print "kcombo:\n";
+			print "+++++\n";
+			print Dumper [@kcombo];
+			my @kccar = cartesian($kcombo[0], $kcombo[1]);
+
+			foreach my $x (@kccar)
+			{
+					print "--->>>>>>>>>>>>\n";
+					print Dumper $x;
+					my @y = sort {$a <=> $b} @$x;
+					print Dumper [@y];
+					#my @sx = sort {$a <=> $b} $x;
+					#print Dumper @sx;
+					$key_non_coreference_links->{@y[0] . "-" . @y[1]} = 1
+			}
+			
+			print Dumper $key_non_coreference_links;
+			print "" . "\n";
+
+			print ".....\n";
+			#print Dumper @kccar;
+			#print "====\n";
+			#print Dumper [@kcombo];
+			#print "-----\n";
+
+			print "\n";
+			#print join(' ', @combo)."\n";
+	}
+
+	print "\n";
+
+
+
+
+	#my @k = ([1, 2], [3, 4, 5], [6, 7, 8, 9]);
+	my $number_chains_in_response = @$response;
+	print "number chains in response: " . $number_chains_in_response . "\n";
+
+
+	my @s = (0..$number_chains_in_response - 1);
+	my $ss = join(' ', @s);
+	my @n = split(' ', $ss);
+
+	my $combinat = Math::Combinatorics->new(count => 2,
+																					data => [@n],
+			);
+
+	print "combinations of 2 from: ".join(" ",@n)."\n";
+	print "------------------------".("--" x scalar(@n))."\n";
+
+
+	while(my @combo = $combinat->next_combination){
+
+			my @kcombo = ();
+			foreach my $comboo (@combo)
+			{
+					push(@kcombo, @$response[$comboo]);
+					#print Dumper $k[$comboo];
+					#print $comboo;
+			}
+
+			my $lkcombo = @kcombo;
+			print "length: " . $lkcombo . "\n";
+			print "kcombo:\n";
+			print "+++++\n";
+			print Dumper [@kcombo];
+			my @kccar = cartesian($kcombo[0], $kcombo[1]);
+
+			foreach my $x (@kccar)
+			{
+					print "--->>>>>>>>>>>>\n";
+					print Dumper $x;
+					my @y = sort {$a <=> $b} @$x;
+					print Dumper [@y];
+					#my @sx = sort {$a <=> $b} $x;
+					#print Dumper @sx;
+					$response_non_coreference_links->{@y[0] . "-" . @y[1]} = 1
+			}
+			
+			print Dumper $response_non_coreference_links;
+			print "" . "\n";
+
+			print ".....\n";
+			#print Dumper @kccar;
+			#print "====\n";
+			#print Dumper [@kcombo];
+			#print "-----\n";
+
+			print "\n";
+			#print join(' ', @combo)."\n";
+	}
+
+	print "\n";
+
+
+	print "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n";
+	print Dumper $key_coreference_links;
+	print Dumper $response_coreference_links;
+	print Dumper $key_non_coreference_links;
+	print Dumper $response_non_coreference_links;
+	print "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n";
+
+
+	
+	my @union_cl = my @isect_cl = ();
+	my %union_cl = my %isect_cl = ();
+
+	my @kcl = keys %$key_coreference_links;
+	my @rcl = keys %$response_coreference_links;
+
+	print Dumper @kcl;
+	print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
+	print Dumper @rcl;
+	print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
+
+	foreach my $e (@kcl, @rcl) { $union_cl{$e}++ && $isect_cl{$e}++}
+
+	@union_cl = keys %union_cl;
+	@isect_cl = keys %isect_cl;
+
+
+	#print Dumper @union;
+	#print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
+	print Dumper @isect_cl;
+	print "********************************************************************************\n";
+
+
+
+	
+
+
+
+	my @union_ncl = my @isect_ncl = ();
+	my %union_ncl = my %isect_ncl = ();
+
+	my @kncl = keys %$key_non_coreference_links;
+	my @rncl = keys %$response_non_coreference_links;
+
+	print Dumper @kncl;
+	print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
+	print Dumper @rncl;
+	print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
+
+	foreach my $e (@kncl, @rncl) { $union_ncl{$e}++ && $isect_ncl{$e}++}
+
+	@union_ncl = keys %union_ncl;
+	@isect_ncl = keys %isect_ncl;
+
+
+	#print Dumper @union;
+	#print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
+	print Dumper @isect_ncl;
+	print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
+
+
+
+
+	my $num_isect_cl = @isect_cl;
+	print "    number of links in the intersection of key and response coreference links: " . $num_isect_cl . "\n";
+
+
+	my $num_isect_ncl = @isect_ncl;
+	print "number of links in the intersection of key and response non-coreference links: " . $num_isect_ncl . "\n";
+	
+
+
+
+
+
+	my $num_key_coreference_links = keys %$key_coreference_links;
+	print "number of key coreference links: " . $num_key_coreference_links . "\n";
+
+	my $num_response_coreference_links = keys %$response_coreference_links;
+	print "number of response coreference links: " . $num_response_coreference_links . "\n";
+
+
+	my $num_key_non_coreference_links = keys %$key_non_coreference_links;
+	print "number of key non-coreference links: " . $num_key_non_coreference_links . "\n";
+
+	my $num_response_non_coreference_links = keys %$response_non_coreference_links;
+	print "number of response non-coreference links: " . $num_response_non_coreference_links . "\n";
+
+
+
+	my $kcl_recall = $num_isect_cl / $num_key_coreference_links;
+	my $kcl_precision = $num_isect_cl / $num_response_coreference_links;
+
+	print "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n";
+	print "       coreference recall: " . $kcl_recall . "\n";
+	print "    coreference precision: " . $kcl_precision . "\n";
+	
+
+	my $fcl = 2 * $kcl_recall * $kcl_precision / ($kcl_recall + $kcl_precision);
+	print "      coreference f-score: " . $fcl . "\n";
+
+	my $kncl_recall = $num_isect_ncl / $num_key_non_coreference_links;
+	my $kncl_precision = $num_isect_ncl / $num_response_non_coreference_links;
+
+	print "--------------------------------------------------------------------------------\n";
+
+	print "   non-coreference recall: " . $kncl_recall . "\n";
+	print "non-coreference precision: " . $kncl_precision . "\n";
+	
+	my $fncl = 2 * $kncl_recall * $kncl_precision / ($kncl_recall + $kncl_precision);
+	print "  non-coreference f-score: " . $fncl . "\n";
+	print "--------------------------------------------------------------------------------\n";
+
+	my $r_blanc = ($kcl_recall + $kncl_recall) / 2;
+	my $p_blanc = ($kcl_precision + $kncl_precision) / 2;
+	my $f_blanc = ($fcl + $fncl) / 2;
+
+	print "   blanc recall: " . $r_blanc . "\n";
+	print "blanc precision: " . $p_blanc . "\n";
+	print "  blanc f-score: " . $f_blanc . "\n"; 
+	print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n";
+
+
+
+	#print "combinations of 2 from: ".join(" ",@n)."\n";
+	#print "------------------------".("--" x scalar(@n))."\n";
+	#while(my @permu = $combinat->next_permutation){
+	#		print join(' ', @permu)."\n";
+	#}
+
+
+  # foreach my $e (@$keys)
+  # {
+  #     foreach my $m (@$e)
+  #     {
+  #         print Dumper $e;
+  #         print "$m\n";
+  #     }
+  # }
+
+
+	
+	#
+	# this block was working
+	#
+  # my @ck = cartesian(@$keys[0], @$keys[1]);
+  # my $ckh = {};
+  # foreach my $k (@ck)
+  # {
+  #     print "@$k[0] @$k[1]\n";
+  #     $ckh->{@$k[0] . "-" . @$k[1]} = 1;
+  # }
+  # print Dumper $ckh;
+  # print "\n\n";
+  # my @cr = cartesian(@$response[0], @$response[1]);
+  # my $crh = {};
+  # foreach my $r (@cr)
+  # {
+  #     print "@$r[0] @$r[1]\n";
+  #     $crh->{@$r[0] . "-" . @$r[1]} = 1;
+  # }
+  #
+  # print Dumper $crh;
+
+
+
+	#
+	# this was a sample code block
+  #
+	# my $strings = [qw(AAA BBB CCC DDD EEE)];
+	# my $iter = combinations($strings, 2);
+	# while (my $c = $iter->next) {
+	# 		print "@$c\n";
+	# }
+	#my @n = qw(a b c);
+	#my @n = [["a"], ["b"], ["c"]];
+
+
+
+
+	#
+	# this block was working on a fake array
+	#
+	# my @k = ([1, 2], [3, 4, 5], [6, 7, 8, 9]);
+	# my $kk = @k;
+	# my @s = (0..$kk - 1);
+	# my $ss = join(' ', @s);
+	# my @n = split(' ', $ss);
+	# my $combinat = Math::Combinatorics->new(count => 2,
+	# 																				data => [@n],
+	# 		);
+	# print "combinations of 2 from: ".join(" ",@n)."\n";
+	# print "------------------------".("--" x scalar(@n))."\n";
+	# while(my @combo = $combinat->next_combination){
+	# 		my @kcombo = ();
+	# 		foreach my $comboo (@combo)
+	# 		{
+	# 				push(@kcombo, $k[$comboo]);
+	# 				#print Dumper $k[$comboo];
+	# 				#print $comboo;
+	# 		}
+	# 		my $lkcombo = @kcombo;
+	# 		print "length: " . $lkcombo . "\n";
+	# 		print "kcombo:\n";
+	# 		print "+++++\n";
+	# 		print Dumper [@kcombo];
+	# 		my @kccar = cartesian($kcombo[0], $kcombo[1]);
+	# 		print ".....\n";
+	# 		print Dumper @kccar;
+	# 		print "====\n";
+	# 		#print Dumper [@kcombo];
+	# 		print "-----\n";
+	# 		print "\n";
+	# 		print join(' ', @combo)."\n";
+	# }
+	# print "\n";
+	# print "combinations of 2 from: ".join(" ",@n)."\n";
+	# print "------------------------".("--" x scalar(@n))."\n";
+	# while(my @permu = $combinat->next_permutation){
+	# 		print join(' ', @permu)."\n";
+	# }
+
+
+	#
+	# some earlier code
+	#
+  # foreach my $e (@$keys)
+  # {
+  #     foreach my $m (@$e)
+  #     {
+  #         print Dumper $e;
+  #         print "$m\n";
+  #     }
+  # }
+  
+
+
+
+
+
+
+
+
+
+  # Each possible pair of mentions
+  my $kIndex = Indexa($keys);
+  my $rIndex = Indexa($response);
+
+  print Dumper $kIndex;
+  print Dumper $rIndex;
+
+
+
+  my @ri = keys(%{$rIndex});
+  for (my $i = 0; $i < @ri - 1; $i++) {
+    my $m_i = $ri[$i];
+    for (my $j = $i+1; $j < @ri; $j++) {
+      my $m_j = $ri[$j];
+      # atraction
+      if ($rIndex->{$m_i} == $rIndex->{$m_j}) {
+        if ($kIndex->{$m_i} == $kIndex->{$m_j}) {
+          $ga++;
+        }
+        else {
+          $ba++;
+        }
+      }
+      # repulsion
+      else {
+        if ($kIndex->{$m_i} != $kIndex->{$m_j}) {
+          $gr++;
+        }
+        else {
+          $br++;
+        }
+      }
+    }
+  }
+
+  if ($VERBOSE) {
+    print "Coreference links: ";
+    ShowRPF($ga, ($ga + $br), $ga, ($ga + $ba));
+    print "Non-coreference links: ";
+    ShowRPF($gr, ($gr + $ba), $gr, ($gr + $br));
+    print "Mean: ";
+
+    my $Pa = ($ga + $ba) ? $ga / ($ga + $ba) : 0;
+    my $Pr = ($gr + $br) ? $gr / ($gr + $br) : 0;
+    my $Ra = ($ga + $br) ? $ga / ($ga + $br) : -1;
+    my $Rr = ($gr + $ba) ? $gr / ($gr + $ba) : -1;
+
+    my $R = ($Ra + $Rr) / 2;
+    my $P = ($Pa + $Pr) / 2;
+    my $Fa = ($Pa + $Ra) ? 2 * $Pa * $Ra / ($Pa + $Ra) : 0;
+    my $Fr = ($Pr + $Rr) ? 2 * $Pr * $Rr / ($Pr + $Rr) : 0;
+    my $f1 = ($Fa + $Fr) / 2;
+
+    if ($Ra == -1 && $Rr == -1) {
+      $R = 0;
+      $P = 0;
+      $f1 = 0;
+    }
+    elsif ($Ra == -1) {
+      $R = $Rr;
+      $P = $Pr;
+      $f1 = $Fr;
+    }
+    elsif ($Rr == -1) {
+      $R = $Ra;
+      $P = $Pa;
+      $f1 = $Fa;
+    }
+    ShowRPF($R, 1, $P, 1, $f1);
+  }
+
+  return ($ga, ($ga + $br), $ga, ($ga + $ba), $gr, ($gr + $ba), $gr, ($gr + $br));
+}
+
+
 
 1;
