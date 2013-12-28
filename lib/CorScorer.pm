@@ -1067,7 +1067,6 @@ sub BLANC_SYS
 	my $response_non_coreference_links = {};
 
 
-	# prints the list containing lists of chains in key
 	print "list containing list of chains in key:\n";
   print Dumper $keys;
 
@@ -1159,8 +1158,6 @@ sub BLANC_SYS
 			foreach my $comboo (@combo)
 			{
 					push(@kcombo, @$keys[$comboo]);
-					#print Dumper $k[$comboo];
-					#print $comboo;
 			}
 
 			my $lkcombo = @kcombo;
@@ -1176,8 +1173,6 @@ sub BLANC_SYS
 					print Dumper $x;
 					my @y = sort {$a <=> $b} @$x;
 					print Dumper [@y];
-					#my @sx = sort {$a <=> $b} $x;
-					#print Dumper @sx;
 					$key_non_coreference_links->{@y[0] . "-" . @y[1]} = 1
 			}
 			
@@ -1185,13 +1180,8 @@ sub BLANC_SYS
 			print "" . "\n";
 
 			print ".....\n";
-			#print Dumper @kccar;
-			#print "====\n";
-			#print Dumper [@kcombo];
-			#print "-----\n";
 
 			print "\n";
-			#print join(' ', @combo)."\n";
 	}
 
 	print "\n";
@@ -1199,7 +1189,6 @@ sub BLANC_SYS
 
 
 
-	#my @k = ([1, 2], [3, 4, 5], [6, 7, 8, 9]);
 	my $number_chains_in_response = @$response;
 	print "number chains in response: " . $number_chains_in_response . "\n";
 
@@ -1222,8 +1211,6 @@ sub BLANC_SYS
 			foreach my $comboo (@combo)
 			{
 					push(@kcombo, @$response[$comboo]);
-					#print Dumper $k[$comboo];
-					#print $comboo;
 			}
 
 			my $lkcombo = @kcombo;
@@ -1239,8 +1226,6 @@ sub BLANC_SYS
 					print Dumper $x;
 					my @y = sort {$a <=> $b} @$x;
 					print Dumper [@y];
-					#my @sx = sort {$a <=> $b} $x;
-					#print Dumper @sx;
 					$response_non_coreference_links->{@y[0] . "-" . @y[1]} = 1
 			}
 			
@@ -1248,13 +1233,7 @@ sub BLANC_SYS
 			print "" . "\n";
 
 			print ".....\n";
-			#print Dumper @kccar;
-			#print "====\n";
-			#print Dumper [@kcombo];
-			#print "-----\n";
-
 			print "\n";
-			#print join(' ', @combo)."\n";
 	}
 
 	print "\n";
@@ -1286,8 +1265,6 @@ sub BLANC_SYS
 	@isect_cl = keys %isect_cl;
 
 
-	#print Dumper @union;
-	#print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
 	print Dumper @isect_cl;
 	print "********************************************************************************\n";
 
@@ -1308,8 +1285,6 @@ sub BLANC_SYS
 	@isect_ncl = keys %isect_ncl;
 
 
-	#print Dumper @union;
-	#print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
 	print Dumper @isect_ncl;
 	print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
 
