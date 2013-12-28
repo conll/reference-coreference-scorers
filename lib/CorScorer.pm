@@ -1034,7 +1034,6 @@ sub ScoreBLANC_SYS
 
     ShowRPF($R, 1, $P, 1, $f1);
   }
-
   return ($acumNRa, $acumDRa, $acumNPa, $acumDPa, $acumNRr, $acumDRr, $acumNPr, $acumDPr);
 }
 
@@ -1292,12 +1291,6 @@ sub BLANC_SYS
 	print Dumper @isect_cl;
 	print "********************************************************************************\n";
 
-
-
-	
-
-
-
 	my @union_ncl = my @isect_ncl = ();
 	my %union_ncl = my %isect_ncl = ();
 
@@ -1330,11 +1323,6 @@ sub BLANC_SYS
 	my $num_isect_ncl = @isect_ncl;
 	print "number of links in the intersection of key and response non-coreference links: " . $num_isect_ncl . "\n";
 	
-
-
-
-
-
 	my $num_key_coreference_links = keys %$key_coreference_links;
 	print "number of key coreference links: " . $num_key_coreference_links . "\n";
 
@@ -1382,200 +1370,8 @@ sub BLANC_SYS
 	print "  blanc f-score: " . $f_blanc . "\n"; 
 	print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n";
 
-
-
-	#print "combinations of 2 from: ".join(" ",@n)."\n";
-	#print "------------------------".("--" x scalar(@n))."\n";
-	#while(my @permu = $combinat->next_permutation){
-	#		print join(' ', @permu)."\n";
-	#}
-
-
-  # foreach my $e (@$keys)
-  # {
-  #     foreach my $m (@$e)
-  #     {
-  #         print Dumper $e;
-  #         print "$m\n";
-  #     }
-  # }
-
-
-	
-	#
-	# this block was working
-	#
-  # my @ck = cartesian(@$keys[0], @$keys[1]);
-  # my $ckh = {};
-  # foreach my $k (@ck)
-  # {
-  #     print "@$k[0] @$k[1]\n";
-  #     $ckh->{@$k[0] . "-" . @$k[1]} = 1;
-  # }
-  # print Dumper $ckh;
-  # print "\n\n";
-  # my @cr = cartesian(@$response[0], @$response[1]);
-  # my $crh = {};
-  # foreach my $r (@cr)
-  # {
-  #     print "@$r[0] @$r[1]\n";
-  #     $crh->{@$r[0] . "-" . @$r[1]} = 1;
-  # }
-  #
-  # print Dumper $crh;
-
-
-
-	#
-	# this was a sample code block
-  #
-	# my $strings = [qw(AAA BBB CCC DDD EEE)];
-	# my $iter = combinations($strings, 2);
-	# while (my $c = $iter->next) {
-	# 		print "@$c\n";
-	# }
-	#my @n = qw(a b c);
-	#my @n = [["a"], ["b"], ["c"]];
-
-
-
-
-	#
-	# this block was working on a fake array
-	#
-	# my @k = ([1, 2], [3, 4, 5], [6, 7, 8, 9]);
-	# my $kk = @k;
-	# my @s = (0..$kk - 1);
-	# my $ss = join(' ', @s);
-	# my @n = split(' ', $ss);
-	# my $combinat = Math::Combinatorics->new(count => 2,
-	# 																				data => [@n],
-	# 		);
-	# print "combinations of 2 from: ".join(" ",@n)."\n";
-	# print "------------------------".("--" x scalar(@n))."\n";
-	# while(my @combo = $combinat->next_combination){
-	# 		my @kcombo = ();
-	# 		foreach my $comboo (@combo)
-	# 		{
-	# 				push(@kcombo, $k[$comboo]);
-	# 				#print Dumper $k[$comboo];
-	# 				#print $comboo;
-	# 		}
-	# 		my $lkcombo = @kcombo;
-	# 		print "length: " . $lkcombo . "\n";
-	# 		print "kcombo:\n";
-	# 		print "+++++\n";
-	# 		print Dumper [@kcombo];
-	# 		my @kccar = cartesian($kcombo[0], $kcombo[1]);
-	# 		print ".....\n";
-	# 		print Dumper @kccar;
-	# 		print "====\n";
-	# 		#print Dumper [@kcombo];
-	# 		print "-----\n";
-	# 		print "\n";
-	# 		print join(' ', @combo)."\n";
-	# }
-	# print "\n";
-	# print "combinations of 2 from: ".join(" ",@n)."\n";
-	# print "------------------------".("--" x scalar(@n))."\n";
-	# while(my @permu = $combinat->next_permutation){
-	# 		print join(' ', @permu)."\n";
-	# }
-
-
-	#
-	# some earlier code
-	#
-  # foreach my $e (@$keys)
-  # {
-  #     foreach my $m (@$e)
-  #     {
-  #         print Dumper $e;
-  #         print "$m\n";
-  #     }
-  # }
-  
-
-
-
-
-
-
-
-
-
-  # Each possible pair of mentions
-  my $kIndex = Indexa($keys);
-  my $rIndex = Indexa($response);
-
-  print Dumper $kIndex;
-  print Dumper $rIndex;
-
-
-
-  my @ri = keys(%{$rIndex});
-  for (my $i = 0; $i < @ri - 1; $i++) {
-    my $m_i = $ri[$i];
-    for (my $j = $i+1; $j < @ri; $j++) {
-      my $m_j = $ri[$j];
-      # atraction
-      if ($rIndex->{$m_i} == $rIndex->{$m_j}) {
-        if ($kIndex->{$m_i} == $kIndex->{$m_j}) {
-          $ga++;
-        }
-        else {
-          $ba++;
-        }
-      }
-      # repulsion
-      else {
-        if ($kIndex->{$m_i} != $kIndex->{$m_j}) {
-          $gr++;
-        }
-        else {
-          $br++;
-        }
-      }
-    }
-  }
-
-  if ($VERBOSE) {
-    print "Coreference links: ";
-    ShowRPF($ga, ($ga + $br), $ga, ($ga + $ba));
-    print "Non-coreference links: ";
-    ShowRPF($gr, ($gr + $ba), $gr, ($gr + $br));
-    print "Mean: ";
-
-    my $Pa = ($ga + $ba) ? $ga / ($ga + $ba) : 0;
-    my $Pr = ($gr + $br) ? $gr / ($gr + $br) : 0;
-    my $Ra = ($ga + $br) ? $ga / ($ga + $br) : -1;
-    my $Rr = ($gr + $ba) ? $gr / ($gr + $ba) : -1;
-
-    my $R = ($Ra + $Rr) / 2;
-    my $P = ($Pa + $Pr) / 2;
-    my $Fa = ($Pa + $Ra) ? 2 * $Pa * $Ra / ($Pa + $Ra) : 0;
-    my $Fr = ($Pr + $Rr) ? 2 * $Pr * $Rr / ($Pr + $Rr) : 0;
-    my $f1 = ($Fa + $Fr) / 2;
-
-    if ($Ra == -1 && $Rr == -1) {
-      $R = 0;
-      $P = 0;
-      $f1 = 0;
-    }
-    elsif ($Ra == -1) {
-      $R = $Rr;
-      $P = $Pr;
-      $f1 = $Fr;
-    }
-    elsif ($Rr == -1) {
-      $R = $Ra;
-      $P = $Pa;
-      $f1 = $Fa;
-    }
-    ShowRPF($R, 1, $P, 1, $f1);
-  }
-
-  return ($ga, ($ga + $br), $ga, ($ga + $ba), $gr, ($gr + $ba), $gr, ($gr + $br));
+	return ($num_isect_cl, $num_key_coreference_links, $num_isect_cl, $num_response_coreference_links,
+                $num_isect_ncl, $num_key_non_coreference_links, $num_isect_ncl,$num_response_non_coreference_links);
 }
 
 
