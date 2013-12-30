@@ -1311,34 +1311,9 @@ sub BLANC_SYS
 	my $num_response_non_coreference_links = keys %$response_non_coreference_links;
 	print "number of response non-coreference links: " . $num_response_non_coreference_links . "\n";
 
-
-
-	my $kcl_recall = ($num_key_coreference_links == 0)?0 : ($num_isect_cl / $num_key_coreference_links);
-	my $kcl_precision = ($num_response_coreference_links == 0)?0 : ($num_isect_cl / $num_response_coreference_links);
-
-	print "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n";
-	print "       coreference recall: " . $kcl_recall . "\n";
-	print "    coreference precision: " . $kcl_precision . "\n";
-	
-
-	my $fcl = ($kcl_recall + $kcl_precision == 0)? 0: (2 * $kcl_recall * $kcl_precision / ($kcl_recall + $kcl_precision));
-	print "      coreference f-score: " . $fcl . "\n";
-
-	my $kncl_recall = ($num_key_non_coreference_links == 0)? 0 : ($num_isect_ncl / $num_key_non_coreference_links);
-	my $kncl_precision = ($num_response_non_coreference_links == 0)? 0: ($num_isect_ncl / $num_response_non_coreference_links);
-
-	print "--------------------------------------------------------------------------------\n";
-
-	print "   non-coreference recall: " . $kncl_recall . "\n";
-	print "non-coreference precision: " . $kncl_precision . "\n";
-	
-	my $fncl = ($kncl_recall + $kncl_precision == 0)? 0 : (2 * $kncl_recall * $kncl_precision / ($kncl_recall + $kncl_precision));
-	print "  non-coreference f-score: " . $fncl . "\n";
-	print "--------------------------------------------------------------------------------\n";
-
-	my $r_blanc = ($kcl_recall + $kncl_recall) / 2;
-	my $p_blanc = ($kcl_precision + $kncl_precision) / 2;
-	my $f_blanc = ($fcl + $fncl) / 2;
+  	my ($r_blanc, $p_blanc, $f_blanc) = ComputeBLANCFromCounts(
+	    $num_isect_cl, $num_key_coreference_links, $num_response_coreference_links,
+	    $num_isect_ncl, $num_key_non_coreference_links, $num_response_non_coreference_links);
 
 	print "   blanc recall: " . $r_blanc . "\n";
 	print "blanc precision: " . $p_blanc . "\n";
@@ -1349,6 +1324,44 @@ sub BLANC_SYS
                 $num_isect_ncl, $num_key_non_coreference_links, $num_isect_ncl,$num_response_non_coreference_links);
 }
 
+################################################################################
+# Compute BLANC recall, precision and F-measure from counts.
+# Parameters:
+#    (#correct_coref_links, #key_coref_links, #response_coref_links, 
+#     #correct_noncoref_links, #key_noncoref_links, #response_noncoref_links).
+# Returns: (recall, precision, F-measure).
+################################################################################
+sub ComputeBLANCFromCounts {
+    my ($num_isect_cl, $num_key_coreference_links, $num_response_coreference_links,
+	$num_isect_ncl, $num_key_non_coreference_links, $num_response_non_coreference_links) =@_;
 
+    my $kcl_recall = ($num_key_coreference_links == 0)?0 : ($num_isect_cl / $num_key_coreference_links);
+    my $kcl_precision = ($num_response_coreference_links == 0)?0 : ($num_isect_cl / $num_response_coreference_links);
+
+    print "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n";
+    print "       coreference recall: " . $kcl_recall . "\n";
+    print "    coreference precision: " . $kcl_precision . "\n";
+	
+
+    my $fcl = ($kcl_recall + $kcl_precision == 0)? 0: (2 * $kcl_recall * $kcl_precision / ($kcl_recall + $kcl_precision));
+    print "      coreference f-score: " . $fcl . "\n";
+
+    my $kncl_recall = ($num_key_non_coreference_links == 0)? 0 : ($num_isect_ncl / $num_key_non_coreference_links);
+    my $kncl_precision = ($num_response_non_coreference_links == 0)? 0: ($num_isect_ncl / $num_response_non_coreference_links);
+
+    print "--------------------------------------------------------------------------------\n";
+    print "   non-coreference recall: " . $kncl_recall . "\n";
+    print "non-coreference precision: " . $kncl_precision . "\n";
+	
+    my $fncl = ($kncl_recall + $kncl_precision == 0)? 0 : (2 * $kncl_recall * $kncl_precision / ($kncl_recall + $kncl_precision));
+    print "  non-coreference f-score: " . $fncl . "\n";
+    print "--------------------------------------------------------------------------------\n";
+
+    my $r_blanc = ($kcl_recall + $kncl_recall) / 2;
+    my $p_blanc = ($kcl_precision + $kncl_precision) / 2;
+    my $f_blanc = ($fcl + $fncl) / 2;
+
+    return ($r_blanc, $p_blanc, $f_blanc);
+}
 
 1;

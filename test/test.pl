@@ -28,9 +28,9 @@ foreach my $test_case (@CorefMetricTestConfig::TestCases) {
     *::SAVED_STDOUT = *STDOUT;
     *STDOUT = *::SUPRRES_STDOUT;
     my @actual_counts = &CorScorer::Score($metric_name, @key_response_files);
-    *STDOUT = *::SAVED_STDOUT;
     # Compute R,P,and F1 from raw counts.
     my @actual_values = CorefMetricTest::ComputeScoreFromCounts(@actual_counts);
+    *STDOUT = *::SAVED_STDOUT;
     my $diff = CorefMetricTest::DiffExpectedAndActual($expected_values, \@actual_values);
     print "  metric: ", $metric_name;
     if ($diff < $error_tolerance) {

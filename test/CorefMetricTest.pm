@@ -26,11 +26,9 @@ sub ComputeScoreFromCounts {
   #   (noncoref_numerator_recall, noncoref_denominator_recall, 
   #    noncoref_numerator_precision, noncoref_denominator_precision) 
   if (scalar(@noncoref_counts) == 4) {
-    my ($noncoref_recall, $noncoref_precision, $noncoref_F1) =
-      RPFFromCounts(@noncoref_counts);
-    ($recall, $precision, $F1) = 
-      ComputeBLANCRPF($recall, $precision, $F1,
-                      $noncoref_recall, $noncoref_precision, $noncoref_F1);
+    ($recall, $precision, $F1) = CorScorer::ComputeBLANCFromCounts(
+	$recall_numerator, $recall_denominator, $precision_denominator,
+	$noncoref_counts[0], $noncoref_counts[1], $noncoref_counts[3]);
   }
   $recall = ($recall < 0) ? 0 : $recall;
   $precision = ($precision < 0) ? 0 : $precision;
@@ -57,7 +55,7 @@ sub RPFFromCounts
   return ($recall, $precision, $F1);
 }
 
-# 
+# deprecated -- see CorScorer::ComputeBLANCFromCounts().
 sub ComputeBLANCRPF
 {
   my ($coref_recall, $coref_precision, $coref_F1,
@@ -65,7 +63,6 @@ sub ComputeBLANCRPF
 
   my ($recall, $precision, $F1);
 
-  # TODO: use the same code in the Scorer::ScoreBLANC to handle the edge cases.
   if ($coref_recall < 0 && $noncoref_recall < 0) {
     # no key mention.
     $recall = $precision = $F1 = 0;
