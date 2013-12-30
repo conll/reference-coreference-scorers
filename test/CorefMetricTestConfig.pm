@@ -28,7 +28,7 @@ our @TestCases = (
   key_file => "DataFiles/TestCase.key", 
   response_file => "DataFiles/TC1.response",
   expected_metrics => { "muc" => [1, 1, 1], 
-                        "bcub" => [1, 1, 1],
+                        "bcub" => [6/6, 6/6, 1],
                         "ceafm" => [1, 1, 1],
                         "ceafe" => [1, 1, 1],
                         "blanc_sys" => [1, 1, 1] }
@@ -37,7 +37,7 @@ our @TestCases = (
   key_file => "DataFiles/TestCase.key", 
   response_file => "DataFiles/TC2.response",
   expected_metrics => { "muc" => [1/3, 1/1, 0.5], 
-                        #"bcub" => [1, 1, 1],
+                        "bcub" => [(7/3)/6, 3/3, 14/25],
                         "ceafm" => [0.5, 1, 0.66667],
                         "ceafe" => [0.6, 0.9, 0.72],
                         "blanc_sys" => [0.21591, 1, 0.35385] }
@@ -46,16 +46,16 @@ our @TestCases = (
   key_file => "DataFiles/TestCase.key", 
   response_file => "DataFiles/TC3.response",
   expected_metrics => { "muc" => [3/3, 3/5, 0.75], 
-                        #"bcub" => [1, 1, 1],
+                        "bcub" => [6/6, (4+7/12)/9, 110/163],
                         "ceafm" => [1, 0.66667, 0.8],
                         "ceafe" => [0.88571, 0.66429, 0.75918],
                         "blanc_sys" => [1, 0.42593, 0.59717] }
 },
 { id => "4", 
-  key_file => "DataFiles/TestCase.key", 
+  key_file => "DataFiles/TestCase.key",
   response_file => "DataFiles/TC4.response",
   expected_metrics => { "muc" => [1/3, 1/3, 1/3], 
-                        #"bcub" => [1, 1, 1],
+                        "bcub" => [(3+1/3)/6, (1+4/3+1/2)/7, 2*(5/9)*(17/42)/((5/9)+(17/42))],
                         "ceafm" => [0.66667, 0.57143, 0.61538],
                         "ceafe" => [0.73333, 0.55, 0.62857],
                         "blanc_sys" => [0.35227, 0.27206, 0.30357] }
@@ -64,7 +64,7 @@ our @TestCases = (
   key_file => "DataFiles/TestCase.key", 
   response_file => "DataFiles/TC5.response",
   expected_metrics => { "muc" => [1/3, 1/4, 2/7], 
-                        #"bcub" => [1, 1, 1],
+                        "bcub" => [(3+1/3)/6, 2.5/8, 2*(5/9)*(5/16)/((5/9)+(5/16))],
                         "ceafm" => [0.66667, 0.5, 0.57143],
                         "ceafe" => [0.68889, 0.51667, 0.59048],
                         "blanc_sys" => [0.35227, 0.19048, 0.24716] }
@@ -73,7 +73,7 @@ our @TestCases = (
   key_file => "DataFiles/TestCase.key", 
   response_file => "DataFiles/TC6.response",
   expected_metrics => { "muc" => [1/3, 1/4, 2/7],
-                        #"bcub" => [1, 1, 1],
+                        "bcub" => [(10/3)/6, (1+4/3+1/2)/8, 2*(5/9)*(17/48)/((5/9)+(17/48))],
                         "ceafm" => [0.66667, 0.5, 0.57143],
                         "ceafe" => [0.73333, 0.55, 0.62857],
                         "blanc_sys" => [0.35227, 0.20870, 0.25817] }
@@ -82,7 +82,7 @@ our @TestCases = (
   key_file => "DataFiles/TestCase.key", 
   response_file => "DataFiles/TC7.response",
   expected_metrics => { "muc" => [1/3, 1/3, 1/3], 
-                        #"bcub" => [1, 1, 1],
+                        "bcub" => [(10/3)/6, (1+4/3+1/2)/7, 2*(5/9)*(17/42)/((5/9)+(17/42))],
                         "ceafm" => [0.66667, 0.57143, 0.61538],
                         "ceafe" => [0.73333, 0.55, 0.62857],
                         "blanc_sys" => [0.35227, 0.27206, 0.30357] }
@@ -91,7 +91,7 @@ our @TestCases = (
   key_file => "DataFiles/TestCase.key", 
   response_file => "DataFiles/TC8.response",
   expected_metrics => { "muc" => [1/3, 1/3, 1/3], 
-                        #"bcub" => [1, 1, 1],
+                        "bcub" => [(10/3)/6, (1+4/3+1/2)/7, 2*(5/9)*(17/42)/((5/9)+(17/42))],
                         "ceafm" => [0.66667, 0.57143, 0.61538],
                         "ceafe" => [0.73333, 0.55, 0.62857],
                         "blanc_sys" => [0.35227, 0.27206, 0.30357] }
@@ -100,7 +100,7 @@ our @TestCases = (
   key_file => "DataFiles/TestCase.key", 
   response_file => "DataFiles/TC9.response",
   expected_metrics => { "muc" => [1/3, 1/3, 1/3],
-                        #"bcub" => [1, 1, 1],
+                        "bcub" => [(10/3)/6, (1+4/3+1/2)/7, 2*(5/9)*(17/42)/((5/9)+(17/42))],
                         "ceafm" => [0.66667, 0.57143, 0.61538],
                         "ceafe" => [0.73333, 0.55, 0.62857],
                         "blanc_sys" => [0.35227, 0.27206, 0.30357] }
@@ -109,7 +109,7 @@ our @TestCases = (
   key_file => "DataFiles/TestCase.key", 
   response_file => "DataFiles/TC10.response",
   expected_metrics => { "muc" => [0, 0, 0], 
-                        #"bcub" => [1, 1, 1],
+                        "bcub" => [3/6, 6/6, 2/3],
                         #”ceafm" => [1, 1, 1],
                         #”ceafe" => [1, 1, 1],
                         "blanc_sys" => [0.5, 0.36667, 0.42308] }
@@ -118,7 +118,7 @@ our @TestCases = (
   key_file => "DataFiles/TestCase.key", 
   response_file => "DataFiles/TC11.response",
   expected_metrics => { "muc" => [3/3, 3/5, 6/8], 
-                        #"bcub" => [1, 1, 1],
+                        "bcub" => [6/6, (1/6+2*2/6+3*3/6)/6, 14/25],
                         #”ceafm" => [1, 1, 1],
                         #”ceafe" => [1, 1, 1],
                         "blanc_sys" => [0.5, 0.13333, 0.21053] }
@@ -127,7 +127,7 @@ our @TestCases = (
   key_file => "DataFiles/TestCase.key", 
   response_file => "DataFiles/TC12.response",
   expected_metrics => { "muc" => [0, 0, 0], 
-                        #"bcub" => [1, 1, 1],
+                        "bcub" => [(1+1/2+2/3)/6, 4/7, 2*(13/36)*(4/7)/((13/36)+(4/7))],
                         #”ceafm" => [1, 1, 1],
                         #”ceafe" => [1, 1, 1],
                         "blanc_sys" => [0.22727, 0.11905, 0.15625] }
@@ -136,7 +136,7 @@ our @TestCases = (
   key_file => "DataFiles/TestCase.key", 
   response_file => "DataFiles/TC13.response",
   expected_metrics => { "muc" => [1/3, 1/6, 2/9], 
-                        #"bcub" => [1, 1, 1],
+                        "bcub" => [(1+1/2+2*2/3)/6, (1/7+1/7+2*2/7)/7, 2*(17/36)*(6/49)/((17/36)+(6/49))],
                         #”ceafm" => [1, 1, 1],
                         #”ceafe" => [1, 1, 1],
                         "blanc_sys" => [0.125, 0.02381, 0.04] }
