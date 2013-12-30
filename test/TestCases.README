@@ -3,68 +3,105 @@ Key/Ref: {a} {bc} {def}
 Rsp/Sys: {a} {bc} {def}
 Expected: CEAFm=1 [recall=6/6=1, prec=6/6=1]
 Expected: CEAFe=1 [recall=3/3=1, prec=3/3=1]
+Expected: BLANC=1 [recall_c=4/4=1, prec_c=4/4=1, recall_n=11/11=1, prec_n=11/11=1]
 
 TC2 -- response with missing mentions/entities
 Key/Ref: {a} {bc} {def}
 Rsp/Sys: {a} {de}
 Expected: CEAFm=6/9=0.67 [common=3, recall=3/6=0.5, Prec=3/3=1]
 Expected: CEAFe=3.6/5=0.72 [common=1+4/5=1.8, recall=1.8/3=0.6, Prec=1.8/2=0.9]
+Expected: BLANC=0.35 [recall_c=1/4, prec_c=1/1, recall_n=2/11, prec_n=2/2]
 
 TC3 -- response with false-alarm mentions/entities
 Key/Ref: {a} {bc} {def}
 Rsp/Sys: {a} {bcx} {defy} {z}
 Expected: CEAFm=12/15=0.8 [common=6, recall=6/6=1, prec=6/9=.67]
 Expected: CEAFe=3.6/5=0.76 [common=1+4/5+6/7=2.66, recall=2.66/3=0.89, Prec=2.66/4=0.66]
+Expected: BLANC=0.60 [recall_c=4/4, prec_c=4/9, recall_n=11/11, prec_n=11/27]
 
 TC4 -- response with both missing and false-alarm mentions/entities
 Key/Ref: {a} {bc} {def}
 Rsp/Sys: {a} {bcx} {dy} {z}
 Expected: CEAFm=8/13=0.62 [common=4 recall=4/6=0.67 prec=4/7=.57]
 Expected: CEAFe=4.4/7=0.63 [common=1+4/5+2/5=2.2, recall=2.2/3=0.73, Prec=2.2/4=0.55]
+Expected: BLANC=0.30 [recall_c=1/4, prec_c=1/4, recall_n=5/11, prec_n=5/17]
 
-TC5 -- response with both missing and false-alarm mentions/entities, and overlapping mentions (capitalized letetr: b abd B). Overlapping mention B in the aligned entity.
+TC5 -- response with both missing and false-alarm mentions/entities, and overlapping mentions (capitalized letter: b and B). Overlapping mention B in the aligned entity.
 Key/Ref: {a} {bc} {def}
 Rsp/Sys: {a} {bcxB} {dy} {z}
 Expected: CEAFm=8/14=0.57 [common=4 recall=4/6=0.67 prec=4/8=.5]
 Expected: CEAFe=4.14/7=0.59 [common=1+4/6+2/5=2.07, recall=2.07/3=0.69, Prec=2.07/4=0.52]
+Expected: BLANC=0.25 [recall_c=1/4, prec_c=1/7, recall_n=5/11, prec_n=5/21]
 
-TC6 -- response with both missing and false-alarm mentions/entities, and overlapping mentions (capitalized letetr: b abd B). Overlappiong mention B in an unaligned entity.
+TC6 -- response with both missing and false-alarm mentions/entities, and overlapping mentions (capitalized letter: b and B). Overlapping mention B in an unaligned entity.
 Key/Ref: {a} {bc} {def}
 Rsp/Sys: {a} {bcx} {dy} {Bz}
 Expected: CEAFm=8/14=0.57 [common=4 recall=4/6=0.67 prec=4/8=.5]
 Expected: CEAFe=4.4/7=0.63 [common=1+4/5+2/5=2.2, recall=2.2/3=0.73, Prec=2.2/4=0.55]
+Expected: BLANC=0.26 [recall_c=1/4, prec_c=1/5, recall_n=5/11, prec_n=5/23]
 
-TC7 -- response with both missing and false-alarm mentions/entities, and duplicate mentions (capitalized letetr: b and B). Duplicate mention B in the same cluster entity (note: this is diff from TC5) -- this tests mention de-duplication.
+TC7 -- response with both missing and false-alarm mentions/entities, and duplicate mentions (capitalized letter: b and B). Duplicate mention B in the same cluster entity (note: this is diff from TC5) -- this tests mention de-duplication.
 Key/Ref: {a} {bc} {def}
 Rsp/Sys: {a} {bcxB} {dy} {z}
  de-dup: {a} {bcx} {dy} {z}
 
-de-dup: 
+de-dup:
 Expected: CEAFm=8/13=0.61538 [common=4, recall=4/6=0.66667, Prec=4/7=0.57143]
 Expected: CEAFe=4.14/7=0.62857 [common=1+4/5+2/5=2.2, recall=2.2/3=0.73333, Prec=2.2/4=0.55]
+Expected: BLANC=0.30 [recall_c=1/4, prec_c=1/4, recall_n=5/11, prec_n=5/17]
 
 if No de-dup: 
 Expected: CEAFm=8/14=0.57 [common=4 recall=4/6=0.67 prec=4/8=.5]
 Expected: CEAFe=4.14/7=0.59 [common=1+4/6+2/5=2.07, recall=2.07/3=0.69, Prec=2.07/4=0.52]
 
 
-TC8 -- response with both missing and false-alarm mentions/entities, and duplicate mentions (capitalized letetr: b and B). Duplicate mention B in a diff entity from b.
+TC8 -- response with both missing and false-alarm mentions/entities, and duplicate mentions (capitalized letter: b and B). Duplicate mention B in a diff entity from b.
 Key/Ref: {a} {bc} {def}
 Rsp/Sys: {a} {bcx} {dy} {Bz}
 
 De-dup: 
 Expected: CEAFm=8/13=0.61538 [common=4 recall=4/6=0.67 prec=4/7=.57143]
-Expected: CEAFe=4.4/7=0.63 [common=1+4/5+2/5=2.2, recall=2.2/3=0.73, Prec=2.2/4=0.55]
+Expected: CEAFe=4.14/7=0.63 [common=1+4/5+2/5=2.2, recall=2.2/3=0.73, Prec=2.2/4=0.55]
+Expected: BLANC=0.30 [recall_c=1/4, prec_c=1/4, recall_n=5/11, prec_n=5/17]
 
 If no de-dup: 
 Expected: CEAFm=8/14=0.57 [common=4 recall=4/6=0.67 prec=4/8=.5]
-Expected: CEAFe=4.4/7=0.63 [common=1+4/5+2/5=2.2, recall=2.2/3=0.73, Prec=2.2/4=0.55]
+Expected: CEAFe=4.14/7=0.63 [common=1+4/5+2/5=2.2, recall=2.2/3=0.73, Prec=2.2/4=0.55]
 
 
 TC9 -- show B3 can be canned: "b" is repeated 10 times so precision approaches 1
-Key/Ref: {a} {b} {def}
+Key/Ref: {a} {bc} {def}
 Rsp/Sys: {a} {bcx} {dy} {Bx10z}
 
 De-dup: 
 Expected: CEAFm=8/14=0.57 [common=4 recall=4/6=0.67 prec=4/7=.57143]
 Expected: CEAFe=4.4/7=0.63 [common=1+4/5+2/5=2.2, recall=2.2/3=0.73, Prec=2.2/4=0.55]
+Expected: BLANC=0.30 [recall_c=1/4, prec_c=1/4, recall_n=5/11, prec_n=5/17]
+
+
+TC10 — Gold mentions. Only singletons in the response.
+Key/Ref: {a} {bc} {def}
+Rsp/Sys: {a} {b} {c} {d} {e} {f}
+
+Expected: BLANC=0.42 [recall_c=0/4, prec_c=0/0, f_c=0, recall_n=11/11, prec_n=11/15]
+
+
+TC11 — Gold mentions. All mentions are coreferent in the response.
+Key/Ref: {a} {bc} {def}
+Rsp/Sys: {abcdef}
+
+Expected: BLANC=0.21 [recall_c=4/4, prec_c=4/15, recall_n=0/11, prec_n=0/0, f_n=0]
+
+
+TC12 — System mentions. Only singletons in the response.
+Key/Ref: {a} {bc} {def}
+Rsp/Sys: {a} {x} {y} {c} {d} {e} {z}
+
+Expected: BLANC=0.16 [recall_c=0/4, prec_c=0/0, f_c=0, recall_n=5/11, prec_n=5/21]
+
+
+TC13 — System mentions. All mentions are coreferent in the response.
+Key/Ref: {a} {bc} {def}
+Rsp/Sys: {axycdez}
+
+Expected: BLANC=0.04 [recall_c=1/4, prec_c=1/21, recall_n=0/11, prec_n=0/0, f_n=0]
