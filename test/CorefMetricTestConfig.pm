@@ -25,7 +25,7 @@ our @EXPORT = qw(TestCases);
 #
 our @TestCases = (
 { id => "1", 
-  key_file => "DataFiles/TestCase.key", 
+  key_file => "DataFiles/TestCase.key",
   response_file => "DataFiles/TC1.response",
   expected_metrics => { "muc" => [1, 1, 1], 
                         "bcub" => [6/6, 6/6, 1],
@@ -140,7 +140,143 @@ our @TestCases = (
                         #”ceafm" => [1, 1, 1],
                         #”ceafe" => [1, 1, 1],
                         "blanc_sys" => [0.125, 0.02381, 0.04] }
+},
+{ id => "14", 
+  key_file => "DataFiles/TC14.key", 
+  response_file => "DataFiles/TC14.response",
+  expected_metrics => { #"muc" => [1, 1, 1], 
+                        #"bcub" => [1, 1, 1],
+                        #”ceafm" => [1, 1, 1],
+                        #”ceafe" => [1, 1, 1],
+                        "blanc_sys" => [1/2 * (1/4 + 1/3), 1/2 * (1/4 + 1/3), 1/2 * (1/4 + 1/3)] }
+},
+{ id => "15", 
+  key_file => "DataFiles/TC15.key", 
+  response_file => "DataFiles/TC15.response",
+  expected_metrics => { #"muc" => [1, 1, 1], 
+                        #"bcub" => [1, 1, 1],
+                        #”ceafm" => [1, 1, 1],
+                        #”ceafe" => [1, 1, 1],
+                        "blanc_sys" => [1/2 * (2/5 + 10/16), 1/2 * (2/5 + 10/16), 1/2 * (2/5 + 10/16)] }
+},
+{ id => "16", 
+		key_file => "DataFiles/TC16.key", 
+		response_file => "DataFiles/TC16.response",
+ 		expected_metrics => { "muc" => [9/9, 9/10, 2*(9/9)*(9/10)/(9/9+9/10)], 
+                          "bcub" => [12/12, 16/21, 2*(12/12)*(16/21)/(12/12+16/21)],
+                          #”ceafm" => [1, 1, 1],
+                          #”ceafe" => [1, 1, 1],
+                          # "blanc_sys" => [1, 1, 1]
+                        }
+},
+{ id => "17", 
+		key_file => "DataFiles/TC17.key", 
+		response_file => "DataFiles/TC17.response",
+ 		expected_metrics => { "muc" => [9/9, 9/10, 2*(9/9)*(9/10)/(9/9+9/10)], 
+                          "bcub" => [1, 7/12, 2*1*(7/12)/(1+7/12)],
+                          #”ceafm" => [1, 1, 1],
+                          #”ceafe" => [1, 1, 1],
+                          # "blanc_sys" => [1, 1, 1]
+                        }
+},
+{ id => "17", 
+		key_file => "DataFiles/TC17.key", 
+		response_file => "DataFiles/TC17.response",
+ 		expected_metrics => { "muc" => [9/9, 9/10, 2*(9/9)*(9/10)/(9/9+9/10)], 
+                          "bcub" => [1, 7/12, 2*1*(7/12)/(1+7/12)],
+                          #”ceafm" => [1, 1, 1],
+                          #”ceafe" => [1, 1, 1],
+                          # "blanc_sys" => [1, 1, 1]
+                        }
+},
+{ id => "17", 
+		key_file => "DataFiles/TC17.key", 
+		response_file => "DataFiles/TC17.response",
+ 		expected_metrics => { "muc" => [9/9, 9/10, 2*(9/9)*(9/10)/(9/9+9/10)], 
+                          "bcub" => [1, 7/12, 2*1*(7/12)/(1+7/12)],
+                          #”ceafm" => [1, 1, 1],
+                          #”ceafe" => [1, 1, 1],
+                          # "blanc_sys" => [1, 1, 1]
+                        }
+},
+{ id => "18", 
+		key_file => "DataFiles/TC18.key", 
+		response_file => "DataFiles/TC18.response",
+ 		expected_metrics => { "muc" => [2/3, 2/2, 2*(2/3)*(2/2)/(2/3+2/2)] ,
+                          #"bcub" => ,
+                          #”ceafm" => ,
+                          #”ceafe" => ,
+                          # "blanc_sys" => 
+                        }
+},
+{ id => "19", 
+		key_file => "DataFiles/TC19.key", 
+		response_file => "DataFiles/TC19.response",
+ 		expected_metrics => { "muc" => [2/2, 2/3, 2*(2/2)*(2/3)/(2/2+2/3)],
+                          #"bcub" => ,
+                          #”ceafm" => ,
+                          #”ceafe" => ,
+                          # "blanc_sys" => 
+                        }
+},
+{ id => "20", 
+		key_file => "DataFiles/TC20.key", 
+		response_file => "DataFiles/TC20.response",
+ 		expected_metrics => { "muc" => [1, 1, 1],
+                          #"bcub" => ,
+                          #”ceafm" => ,
+                          #”ceafe" => ,
+                          # "blanc_sys" => 
+                        }
+},
+{ id => "21", 
+		key_file => "DataFiles/TC21.key", 
+		response_file => "DataFiles/TC21.response",
+ 		expected_metrics => { "muc" => [2/3, 2/2, 2*(2/3)*(2/2)/(2/3+2/2)],
+                          #"bcub" => ,
+                          #”ceafm" => ,
+                          #”ceafe" => ,
+                          # "blanc_sys" => 
+                        }
+},
+{ id => "22", 
+		key_file => "DataFiles/TC22.key", 
+		response_file => "DataFiles/TC22.response",
+ 		expected_metrics => { "muc" => [1/2, 1/1, 2*(1/2)*(1/1)/(1/2+1/1)],
+                          #"bcub" => ,
+                          #”ceafm" => ,
+                          #”ceafe" => ,
+                          # "blanc_sys" => 
+                        }
+},
+{ id => "23", 
+		key_file => "DataFiles/TC23.key", 
+		response_file => "DataFiles/TC23.response",
+ 		expected_metrics => { "muc" => [3/6, 3/6, 3/6],
+                          #"bcub" => ,
+                          #”ceafm" => ,
+                          #”ceafe" => ,
+                          # "blanc_sys" => 
+                        }
+},
+{ id => "24", 
+		key_file => "DataFiles/TC24.key", 
+		response_file => "DataFiles/TC24.response",
+ 		expected_metrics => { "muc" => [2/5, 2/4, 2*(2/5)*(2/4)/(2/5+2/4)],
+                          #"bcub" => ,
+                          #”ceafm" => ,
+                          #”ceafe" => ,
+                          # "blanc_sys" => 
+                        }
 }
+
+
+
 );
 
 1;
+
+
+
+
+

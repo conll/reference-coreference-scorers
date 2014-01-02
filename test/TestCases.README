@@ -131,3 +131,174 @@ Rsp/Sys: {axycdez}
 Expected: BCUB=0.19447 [recall=17/36, prec=6/49]
 Expected: MUC=2/9 [recall=1/3, prec=1/6]
 Expected: BLANC=0.04 [recall_c=1/4, prec_c=1/21, recall_n=0/11, prec_n=0/0, f_n=0]
+
+
+TC14 -- spurious mention (x) and missing mention (a) in response
+
+    Keys: {ab} {cde} 
+Response: {bcx} {de}
+
+    key coref links: C_k = {(ab), (cd), (de), (ce)}
+key non-coref links: N_k = {(ac), (ad), (ae), (bc), (bd), (be)}
+
+    response coref links: C_r = {(bc), (bx), (cx), (de)}
+response non-coref links: N_r = {(bd), (be), (cd), (ce),  (xd), (xe)}
+
+(I'll use ^ for set intersection)
+C_k ^ C_r = {(de)} => R_c = |C_k^C_r| / |C_k| = 1/4, P_c = 1/|C_r| = 1/4, F_c = 1/4
+N_k ^ N_r = {(bd), (be)} => R_n = |N_k^N_r|/|N_k| = 2/6,  P_n = 2/|N_r| = 2/6, F_n = 1/3
+
+BLANC = 1/2 (F_c + F_n) = 7/24.
+
+Note that in this example, link (bc) is a key non-coref link and is an
+incorrect response coref link.
+
+
+
+TC15 -- spurious mention (x) and missing mention (a) in response
+
+    Keys: {ab} {cde} {fg}
+Response: {bcx} {de} {fg}
+
+         key coref links: C_k = {(ab), (cd), (de), (ce), (fg)}} 
+     key non-coref links: N_k = {(ac), (ad), (ae), (bc), (bd), (be), (af), (ag), (bf), (bg), (cf), (cg), (df), (dg), (ef), (eg)}
+
+    response coref links: C_r = {(bc), (bx), (cx), (de), (fg)}
+response non-coref links: N_r = {(bd), (be), (cd), (ce), (xd), (xe), (bf), (bg), (cf), (cg), (xf), (xg), (df), (dg), (ef), (eg)}
+
+(I'll use ^ for set intersection)
+C_k ^ C_r = {(de), (fg)} => R_c = |C_k^C_r| / |C_k| = 2/5, P_c = 2/|C_r| = 2/5, F_c = 2/5 = 0.40
+N_k ^ N_r = {(bd), (be), (bf), (bg), (cf), (cg), (df), (dg), (ef), (eg)} => R_n = |N_k^N_r|/|N_k| = 10/16,  P_n = 10/|N_r| = 10/16, F_n = 10/16 = 0.625
+
+BLANC = 1/2 (F_c + F_n) = 0.5125
+
+
+
+# ------------ examples from the B-CUBED paper
+
+TC16 -- merging one small cluster with a big cluster
+
+key: {12345} {67} {89ABC}
+---
+
+1-2-3-4-5
+
+6-7     
+
+8-9-A-B-C
+
+
+
+response: {12345} {6789ABC}
+---------
+
+1-2-3-4-5
+
+6-7     
+  |
+  8-9-A-B-C
+
+
+Expected: BCUB [r=12/12, p=16/21, f=0.864864865]
+Expected:  MUC [r=9/9, p=9/10, f=0.947368421]
+
+
+
+TC17 -- merging two big clusters
+
+
+key: {12345} {67} {89ABC}
+---
+
+1-2-3-4-5
+
+6-7     
+
+8-9-A-B-C
+
+
+
+response: {123456789ABC} {67}
+---------
+
+1-2-3-4-5
+        |
+6-7     |
+        |
+        8-9-A-B-C
+
+
+Expected: BCUB [r=1, p=7/12, f=0.736842105]
+Expected:  MUC [r=9/9, p=9/10, f=0.947368421]
+
+
+# ---------- examples from the MUC paper
+
+TC18 -- 
+
+     key: {ABCD}    ---- Links: A-B; B-C; C-D
+response: {AB} {CD} ---- Links: A-B; C-D
+
+Expected:  MUC [r=2/3, p=2/2, f=2*(2/3)*(2/2)/(2/3+2/2)]
+
+
+
+TC19 --
+
+     key: {AB} {CD} ---- Links: A-B; C-D
+response: {ABCD}    ---- Links: A-B; B-C; C-D
+
+Expected:  MUC [r=2/2, p=2/3, f=2*(2/2)*(2/3)/(2/2+2/3)]
+
+
+
+TC20 --
+
+     key: {ABCD} ---- Links: A-B; B-C; B-D
+response: {ABCD} ---- Links: A-B; B-C; C-D
+
+Expected:  MUC [r=1, p=1, f=1]
+
+
+
+TC21 --
+
+     key: {ABCD}    ---- Links: A-B; B-C; B-D
+response: {AB} {CD} ---- Links: A-B; C-D
+
+Expected:  MUC [r=2/3, p=2/2, f=2*(2/3)*(2/2)/(2/3+2/2)]
+
+
+
+TC22 --
+
+     key: {ABC} ---- Links: A-B; B-C
+response: {AC}  ---- Links: A-C
+
+Expected:  MUC [r=1/2, p=1/1, f=2*(1/2)*(1/1)/(1/2+1/1)]
+
+
+
+TC23 --
+
+     key: {BCDEGHJ}         ---- Links: B-C; C-D; D-E; E-G; G-H; H-J
+response: {ABC} {DEF} {GHI} ---- Links: A-B; B-C; D-E; E-F; G-H; H-I
+
+Expected:  MUC [r=3/6, p=3/6, f=3/6]
+
+
+
+TC24 --
+
+     key: {ABC} {DEFG}    ---- Links: A-B; B-C; D-E; E-F; F-G
+response: {AB} {CD} {FGH} ---- Links: A-B; C-D; F-G; G-H
+
+Expected:  MUC [r=2/5, p=2/4, f=2*(2/5)*(2/4)/(2/5+2/4)]
+
+
+
+
+
+
+
+
