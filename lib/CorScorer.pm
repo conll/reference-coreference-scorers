@@ -84,7 +84,8 @@ sub Score
   my ($metric, $kFile, $rFile, $name) = @_;
 
   if (lc($metric) eq 'blanc') {
-    return ScoreBLANC($kFile, $rFile, $name);
+			#return ScoreBLANC($kFile, $rFile, $name);
+			return ScoreBLANC_UNMODIFIED($kFile, $rFile, $name);
   }
 
   if (lc($metric) eq 'blanc_sys') {
@@ -948,6 +949,101 @@ sub BLANC
 
   return ($ga, ($ga + $br), $ga, ($ga + $ba), $gr, ($gr + $ba), $gr, ($gr + $br));
 }
+
+
+
+
+
+
+# ORIGINAL MENTIONS
+sub ScoreBLANC_UNMODIFIED
+{
+  my ($kFile, $rFile, $name) = @_;
+  my ($acumNRa, $acumDRa, $acumNPa, $acumDPa) = (0,0,0,0);
+  my ($acumNRr, $acumDRr, $acumNPr, $acumDPr) = (0,0,0,0);
+  my %idenTotals = (recallDen => 0, recallNum => 0, precisionDen => 0, precisionNum => 0);
+
+  if (defined($name) && $name ne 'none') {
+    print "$name:\n" if ($VERBOSE);
+    my $keys = GetCoreference($kFile, $KEY_COLUMN, $name);
+    my $response = GetCoreference($rFile, $RESPONSE_COLUMN, $name);
+    my ($keyChains, $keyChainsWithSingletonsFromResponse, $responseChains, $responseChainsWithoutMentionsNotInKey, $keyChainsOrig, $responseChainsOrig) = IdentifMentions($keys, $response, \%idenTotals);
+    ($acumNRa, $acumDRa, $acumNPa, $acumDPa, $acumNRr, $acumDRr, $acumNPr, $acumDPr) = BLANC($keyChainsOrig, $responseChainsOrig);
+  }
+  else {
+    my $kIndexNames = GetFileNames($kFile);
+    my $rIndexNames = GetFileNames($rFile);
+
+    $VERBOSE = 0 if ($name eq 'none');
+    foreach my $iname (keys(%{$kIndexNames})) {
+      my $keys = GetCoreference($kFile, $KEY_COLUMN, $iname, $kIndexNames->{$iname});
+      my $response = GetCoreference($rFile, $RESPONSE_COLUMN, $iname, $rIndexNames->{$iname});
+
+      print "$name:\n" if ($VERBOSE);
+      my ($keyChains, $keyChainsWithSingletonsFromResponse, $responseChains, $responseChainsWithoutMentionsNotInKey, $keyChainsOrig, $responseChainsOrig) = IdentifMentions($keys, $response, \%idenTotals);
+      my ($nra, $dra, $npa, $dpa, $nrr, $drr, $npr, $dpr) = BLANC($keyChainsOrig, $responseChainsOrig);
+
+      $acumNRa += $nra;
+      $acumDRa += $dra;
+      $acumNPa += $npa;
+      $acumDPa += $dpa;
+      $acumNRr += $nrr;
+      $acumDRr += $drr;
+      $acumNPr += $npr;
+      $acumDPr += $dpr;
+    }
+  }
+
+  if ($VERBOSE || $name eq 'none') {
+    print "\n====== TOTALS =======\n";
+    print "Identification of Mentions: ";
+    ShowRPF($idenTotals{recallNum}, $idenTotals{recallDen}, $idenTotals{precisionNum},
+          $idenTotals{precisionDen});
+    print "\nCoreference:\n";
+    print "Coreference links: ";
+    ShowRPF($acumNRa, $acumDRa, $acumNPa, $acumDPa);
+    print "Non-coreference links: ";
+    ShowRPF($acumNRr, $acumDRr, $acumNPr, $acumDPr);
+    print "BLANC: ";
+
+    my $Ra = ($acumDRa) ? $acumNRa/$acumDRa : -1;
+    my $Rr = ($acumDRr) ? $acumNRr/$acumDRr : -1;
+    my $Pa = ($acumDPa) ? $acumNPa/$acumDPa : 0;
+    my $Pr = ($acumDPr) ? $acumNPr/$acumDPr : 0;
+
+    my $R = ($Ra + $Rr) / 2;
+    my $P = ($Pa + $Pr) / 2;
+
+    my $Fa = ($Pa + $Ra) ? 2 * $Pa * $Ra / ($Pa + $Ra) : 0;
+    my $Fr = ($Pr + $Rr) ? 2 * $Pr * $Rr / ($Pr + $Rr) : 0;
+
+    my $f1 = ($Fa + $Fr) / 2;
+
+    if ($Ra == -1 && $Rr == -1) {
+      $R = 0;
+      $P = 0;
+      $f1 = 0;
+    }
+    elsif ($Ra == -1) {
+      $R = $Rr;
+      $P = $Pr;
+      $f1 = $Fr;
+    }
+    elsif ($Rr == -1) {
+      $R = $Ra;
+      $P = $Pa;
+      $f1 = $Fa;
+    }
+
+    ShowRPF($R, 1, $P, 1, $f1);
+  }
+
+  return ($acumNRa, $acumDRa, $acumNPa, $acumDPa, $acumNRr, $acumDRr, $acumNPr, $acumDPr);
+}
+
+
+
+
 
 
 
