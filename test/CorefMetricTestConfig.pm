@@ -179,26 +179,6 @@ our @TestCases = (
                           # "blanc_sys" => [1, 1, 1]
                         }
 },
-{ id => "17", 
-		key_file => "DataFiles/TC17.key", 
-		response_file => "DataFiles/TC17.response",
- 		expected_metrics => { "muc" => [9/9, 9/10, 2*(9/9)*(9/10)/(9/9+9/10)], 
-                          "bcub" => [1, 7/12, 2*1*(7/12)/(1+7/12)],
-                          #”ceafm" => [1, 1, 1],
-                          #”ceafe" => [1, 1, 1],
-                          # "blanc_sys" => [1, 1, 1]
-                        }
-},
-{ id => "17", 
-		key_file => "DataFiles/TC17.key", 
-		response_file => "DataFiles/TC17.response",
- 		expected_metrics => { "muc" => [9/9, 9/10, 2*(9/9)*(9/10)/(9/9+9/10)], 
-                          "bcub" => [1, 7/12, 2*1*(7/12)/(1+7/12)],
-                          #”ceafm" => [1, 1, 1],
-                          #”ceafe" => [1, 1, 1],
-                          # "blanc_sys" => [1, 1, 1]
-                        }
-},
 { id => "18", 
 		key_file => "DataFiles/TC18.key", 
 		response_file => "DataFiles/TC18.response",
