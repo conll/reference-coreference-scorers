@@ -1453,10 +1453,40 @@ sub ComputeBLANCFromCounts {
     print "  non-coreference f-score: " . $fncl . "\n";
     print "--------------------------------------------------------------------------------\n";
 
-    my $r_blanc = ($kcl_recall + $kncl_recall) / 2;
-    my $p_blanc = ($kcl_precision + $kncl_precision) / 2;
-    my $f_blanc = ($fcl + $fncl) / 2;
 
+		my $r_blanc = -1;
+		my $p_blanc = -1;
+		my $f_blanc = -1;
+
+
+		if ( $fcl == 0 && $fncl == 0)
+		{
+				$r_blanc = 0;
+				$p_blanc = 0;
+				$f_blanc = 0;
+		}
+		elsif ( $fcl == 0 || $fncl == 0)
+		{
+				if ($fcl == 0)
+				{
+						$r_blanc = $kncl_recall;
+						$p_blanc = $kncl_precision;
+						$f_blanc = $fncl;
+				}
+				elsif ($fncl == 0)
+				{
+						$r_blanc = $kcl_recall;
+						$p_blanc = $kcl_precision;
+						$f_blanc = $fcl;
+				}
+		}
+		else
+		{
+		    $r_blanc = ($kcl_recall + $kncl_recall) / 2;
+				$p_blanc = ($kcl_precision + $kncl_precision) / 2;
+				$f_blanc = ($fcl + $fncl) / 2;
+		}
+				
     return ($r_blanc, $p_blanc, $f_blanc);
 }
 
