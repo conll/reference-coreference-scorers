@@ -179,9 +179,9 @@ our @TestCases = (
 		response_file => "DataFiles/TC-D-1.response",
  		expected_metrics => { "muc" => [9/9, 9/10, 2*(9/9)*(9/10)/(9/9+9/10)], 
                           "bcub" => [12/12, 16/21, 2*(12/12)*(16/21)/(12/12+16/21)],
-                          #”ceafm" => [1, 1, 1],
-                          #”ceafe" => [1, 1, 1],
-                          # "blanc_sys" => [1, 1, 1]
+                          #"ceafm" => [1, 1, 1],
+                          #"ceafe" => [1, 1, 1],
+                          #"blanc_sys" => [1, 1, 1]
                         }
 },
 { id => "E1", 
@@ -189,9 +189,9 @@ our @TestCases = (
 		response_file => "DataFiles/TC-E-1.response",
  		expected_metrics => { "muc" => [9/9, 9/10, 2*(9/9)*(9/10)/(9/9+9/10)], 
                           "bcub" => [1, 7/12, 2*1*(7/12)/(1+7/12)],
-                          #”ceafm" => [1, 1, 1],
-                          #”ceafe" => [1, 1, 1],
-                          # "blanc_sys" => [1, 1, 1]
+                          #"ceafm" => [1, 1, 1],
+                          #"ceafe" => [1, 1, 1],
+                          #"blanc_sys" => [1, 1, 1]
                         }
 },
 { id => "F1", 
@@ -199,9 +199,9 @@ our @TestCases = (
 		response_file => "DataFiles/TC-F-1.response",
  		expected_metrics => { "muc" => [2/3, 2/2, 2*(2/3)*(2/2)/(2/3+2/2)] ,
                           #"bcub" => ,
-                          #”ceafm" => ,
-                          #”ceafe" => ,
-                          # "blanc_sys" => 
+                          #"ceafm" => ,
+                          #"ceafe" => ,
+                          #"blanc_sys" => 
                         }
 },
 { id => "G1", 
@@ -209,9 +209,9 @@ our @TestCases = (
 		response_file => "DataFiles/TC-G-1.response",
  		expected_metrics => { "muc" => [2/2, 2/3, 2*(2/2)*(2/3)/(2/2+2/3)],
                           #"bcub" => ,
-                          #”ceafm" => ,
-                          #”ceafe" => ,
-                          # "blanc_sys" => 
+                          #"ceafm" => ,
+                          #"ceafe" => ,
+                          #"blanc_sys" => 
                         }
 },
 { id => "H1", 
@@ -219,9 +219,9 @@ our @TestCases = (
 		response_file => "DataFiles/TC-H-1.response",
  		expected_metrics => { "muc" => [1, 1, 1],
                           #"bcub" => ,
-                          #”ceafm" => ,
-                          #”ceafe" => ,
-                          # "blanc_sys" => 
+                          #"ceafm" => ,
+                          #"ceafe" => ,
+                          #"blanc_sys" => 
                         }
 },
 { id => "I1", 
@@ -229,9 +229,9 @@ our @TestCases = (
 		response_file => "DataFiles/TC-I-1.response",
  		expected_metrics => { "muc" => [2/3, 2/2, 2*(2/3)*(2/2)/(2/3+2/2)],
                           #"bcub" => ,
-                          #”ceafm" => ,
-                          #”ceafe" => ,
-                          # "blanc_sys" => 
+                          #"ceafm" => ,
+                          #"ceafe" => ,
+                          #"blanc_sys" => 
                         }
 },
 { id => "J1", 
@@ -239,9 +239,9 @@ our @TestCases = (
 		response_file => "DataFiles/TC-J-1.response",
  		expected_metrics => { "muc" => [1/2, 1/1, 2*(1/2)*(1/1)/(1/2+1/1)],
                           #"bcub" => ,
-                          #”ceafm" => ,
-                          #”ceafe" => ,
-                          # "blanc_sys" => 
+                          #"ceafm" => ,
+                          #"ceafe" => ,
+                          #"blanc_sys" => 
                         }
 },
 { id => "K1", 
@@ -249,9 +249,9 @@ our @TestCases = (
 		response_file => "DataFiles/TC-K-1.response",
  		expected_metrics => { "muc" => [3/6, 3/6, 3/6],
                           #"bcub" => ,
-                          #”ceafm" => ,
-                          #”ceafe" => ,
-                          # "blanc_sys" => 
+                          #"ceafm" => ,
+                          #"ceafe" => ,
+                          #"blanc_sys" => 
                         }
 },
 { id => "L1", 
@@ -259,13 +259,119 @@ our @TestCases = (
 		response_file => "DataFiles/TC-L-1.response",
  		expected_metrics => { "muc" => [2/5, 2/4, 2*(2/5)*(2/4)/(2/5+2/4)],
                           #"bcub" => ,
-                          #”ceafm" => ,
-                          #”ceafe" => ,
-                          # "blanc_sys" => 
+                          #"ceafm" => ,
+                          #"ceafe" => ,
+                          #"blanc_sys" => 
                         }
+},
+{ id => "M1", 
+		key_file => "DataFiles/TC-M.key", 
+		response_file => "DataFiles/TC-M-1.response",
+ 		expected_metrics => { "muc" => [1, 1, 1],
+                          "bcub" => [1, 1, 1],
+                          "ceafm" => [1, 1, 1],
+                          "ceafe" => [1, 1, 1],
+                          "blanc_sys" => [1, 1, 1] }
+},
+{ id => "M2", 
+		key_file => "DataFiles/TC-M.key", 
+		response_file => "DataFiles/TC-M-2.response",
+ 		expected_metrics => { "muc" => [0, 0, 0],
+                          #"bcub" => ,
+                          #"ceafm" => ,
+                          #"ceafe" => ,
+                          "blanc_sys" => [0, 0, 0] }
+},
+{ id => "M3", 
+		key_file => "DataFiles/TC-M.key", 
+		response_file => "DataFiles/TC-M-3.response",
+ 		expected_metrics => { #"muc" => ,
+                          #"bcub" => ,
+                          #"ceafm" => ,
+                          #"ceafe" => ,
+                          "blanc_sys" => [0.26667, 1, 0.42105] }
+},
+{ id => "M4", 
+		key_file => "DataFiles/TC-M.key", 
+		response_file => "DataFiles/TC-M-4.response",
+ 		expected_metrics => { #"muc" => ,
+                          #"bcub" => ,
+                          #"ceafm" => ,
+                          #"ceafe" => ,
+                          "blanc_sys" => [0.2, 0.2, 0.2] }
+},
+{ id => "M5", 
+		key_file => "DataFiles/TC-M.key", 
+		response_file => "DataFiles/TC-M-5.response",
+ 		expected_metrics => { "muc" => [0, 0, 0],
+                          #"bcub" => ,
+                          #"ceafm" => ,
+                          #"ceafe" => ,
+                          "blanc_sys" => [0, 0, 0] }
+},
+{ id => "M6", 
+		key_file => "DataFiles/TC-M.key", 
+		response_file => "DataFiles/TC-M-6.response",
+ 		expected_metrics => { #"muc" => ,
+                          #"bcub" => ,
+                          #"ceafm" => ,
+                          #"ceafe" => ,
+                          "blanc_sys" => [0.06667, 0.25, 0.10526] }
+},
+{ id => "N1", 
+		key_file => "DataFiles/TC-N.key", 
+		response_file => "DataFiles/TC-N-1.response",
+ 		expected_metrics => { "muc" => [0, 0, 0],
+                          #"bcub" => ,
+                          #"ceafm" => ,
+                          #"ceafe" => ,
+                          "blanc_sys" => [1, 1, 1] }
+},
+{ id => "N2", 
+		key_file => "DataFiles/TC-N.key", 
+		response_file => "DataFiles/TC-N-2.response",
+ 		expected_metrics => { #"muc" => [0, 0, 0],
+                          #"bcub" => ,
+                          #"ceafm" => ,
+                          #"ceafe" => ,
+                          "blanc_sys" => [0, 0, 0] }
+},
+{ id => "N3", 
+		key_file => "DataFiles/TC-N.key", 
+		response_file => "DataFiles/TC-N-3.response",
+ 		expected_metrics => { #"muc" => ,
+                          #"bcub" => ,
+                          #"ceafm" => ,
+                          #"ceafe" => ,
+                          "blanc_sys" => [0.73333, 1, 0.84615] }
+},
+{ id => "N4", 
+		key_file => "DataFiles/TC-N.key", 
+		response_file => "DataFiles/TC-N-4.response",
+ 		expected_metrics => { #"muc" => [0, 0, 0],
+                          #"bcub" => ,
+                          #"ceafm" => ,
+                          #"ceafe" => ,
+                          "blanc_sys" => [0.2, 0.2, 0.2] }
+},
+{ id => "N5", 
+		key_file => "DataFiles/TC-N.key", 
+		response_file => "DataFiles/TC-N-5.response",
+ 		expected_metrics => { #"muc" => ,
+                          #"bcub" => ,
+                          #"ceafm" => ,
+                          #"ceafe" => ,
+                          "blanc_sys" => [0, 0, 0] }
+},
+{ id => "N6", 
+		key_file => "DataFiles/TC-N.key", 
+		response_file => "DataFiles/TC-N-6.response",
+ 		expected_metrics => { #"muc" => ,
+                          #"bcub" => ,
+                          #"ceafm" => ,
+                          #"ceafe" => ,
+                          "blanc_sys" => [0.13333, 0.18182, 0.15385] }
 }
-
-
 
 );
 

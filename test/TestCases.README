@@ -294,3 +294,88 @@ TC—L-1 --
 response: {AB} {CD} {FGH} ---- Links: A-B; C-D; F-G; G-H
 
 Expected:  MUC [r=2/5, p=2/4, f=2*(2/5)*(2/4)/(2/5+2/4)]
+
+
+TC-M-1 — Only coreferent mentions in the key. Gold mentions. Matching response. Since the key contains no non-coreference link, BLANC equals recall_c, prec_c, F_c.
+Key/Ref: {abcdef}
+Rsp/Sys: {abcdef}
+
+Expected: BLANC=1 [recall_c=15/15=1, prec_c=15/15=1]
+
+
+TC-M-2 — Only coreferent mentions in the key. Gold mentions. Response contains only non-coreference links. 
+Key/Ref: {abcdef}
+Rsp/Sys: {a} {b} {c} {d} {e} {f}
+
+Expected: BLANC=0 [recall_c=0/15=0, prec_c=0/0=0]
+
+
+TC-M-3 — Only coreferent mentions in the key. Gold mentions. Response contains coreference and non-coreference links. 
+Key/Ref: {abcdef}
+Rsp/Sys: {ab} {cde} {f}
+
+Expected: BLANC=0.42 [recall_c=4/15, prec_c=4/4=1]
+
+
+TC-M-4 — Only coreferent mentions in the key. System mentions: only coreferent mentions. Since the key contains no non-coreference link, BLANC equals recall_c, prec_c, F_c.
+Key/Ref: {abcdef}
+Rsp/Sys: {abcxyz}
+
+Expected: BLANC=0.20 [recall_c=3/15, prec_c=3/15]
+
+
+TC-M-5 — Only coreferent mentions in the key. System mentions: only singletons.
+Key/Ref: {abcdef}
+Rsp/Sys: {a} {b} {c} {x} {y} {z}
+
+Expected: BLANC=0 [recall_c=0/15=0, prec_c=0/0=0]
+
+
+TC-M-6 — Only coreferent mentions in the key. System mentions: coreference and non-coreference links. 
+Key/Ref: {abcdef}
+Rsp/Sys: {ab} {cxy} {z}
+
+Expected: BLANC=0.11 [recall_c=1/15, prec_c=1/4]
+
+
+TC-N-1 — Only singletons in the key. Gold mentions. Matching response. Since the key contains no coreference link, BLANC equals recall_n, prec_n, F_n.
+Key/Ref: {a} {b} {c} {d} {e} {f}
+Rsp/Sys: {a} {b} {c} {d} {e} {f}
+
+Expected: BLANC=1 [recall_n=15/15=1, prec_n=15/15=1]
+
+
+TC—N-2 — Only singletons in the key. Gold mentions. Response contains only coreference links. 
+Key/Ref: {a} {b} {c} {d} {e} {f}
+Rsp/Sys: {abcdef}
+
+Expected: BLANC=0 [recall_n=0/15=0, prec_n=0/0=0]
+
+
+TC—N-3 — Only singletons in the key. Gold mentions. Response contains coreference and non-coreference links. 
+Key/Ref: {a} {b} {c} {d} {e} {f}
+Rsp/Sys: {ab} {cde} {f}
+
+Expected: BLANC=0.85 [recall_n=11/15, prec_n=11/11=1]
+
+
+TC-N-4 — Only singletons in the key. System mentions: only singletons. Since the key contains no coreference link, BLANC equals recall_n, prec_n, F_n.
+Key/Ref: {a} {b} {c} {d} {e} {f}
+Rsp/Sys: {a} {b} {c} {x} {y} {z}
+
+Expected: BLANC=0.20 [recall_n=3/15, prec_n=3/15]
+
+
+TC—N-5 — Only singletons in the key. System mentions: only coreference links. 
+Key/Ref: {a} {b} {c} {d} {e} {f}
+Rsp/Sys: {abcxyz}
+
+Expected: BLANC=0 [recall_n=0/15=0, prec_n=0/0=0]
+
+
+TC—N-6 — Only singletons in the key. Only coreferent mentions in the key. System mentions: coreference and non-coreference links. 
+Key/Ref: {a} {b} {c} {d} {e} {f}
+Rsp/Sys: {ab} {cxy} {z}
+
+Expected: BLANC=0.15 [recall_n=2/15, prec_n=2/11]
+
