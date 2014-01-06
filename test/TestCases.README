@@ -300,6 +300,10 @@ TC-M-1 — Only coreferent mentions in the key. Gold mentions. Matching response
 Key/Ref: {abcdef}
 Rsp/Sys: {abcdef}
 
+Expected: BCUB=1
+Expected: MUC=1
+Expected: CEAFm=1
+Expected: CEAFe=1
 Expected: BLANC=1 [recall_c=15/15=1, prec_c=15/15=1]
 
 
@@ -307,6 +311,7 @@ TC-M-2 — Only coreferent mentions in the key. Gold mentions. Response contains
 Key/Ref: {abcdef}
 Rsp/Sys: {a} {b} {c} {d} {e} {f}
 
+Expected: MUC=0
 Expected: BLANC=0 [recall_c=0/15=0, prec_c=0/0=0]
 
 
@@ -328,6 +333,7 @@ TC-M-5 — Only coreferent mentions in the key. System mentions: only singletons
 Key/Ref: {abcdef}
 Rsp/Sys: {a} {b} {c} {x} {y} {z}
 
+Expected: MUC=0
 Expected: BLANC=0 [recall_c=0/15=0, prec_c=0/0=0]
 
 
@@ -342,6 +348,10 @@ TC-N-1 — Only singletons in the key. Gold mentions. Matching response. Since t
 Key/Ref: {a} {b} {c} {d} {e} {f}
 Rsp/Sys: {a} {b} {c} {d} {e} {f}
 
+Expected: BCUB=1
+Expected: MUC=0
+Expected: CEAFm=1
+Expected: CEAFe=1
 Expected: BLANC=1 [recall_n=15/15=1, prec_n=15/15=1]
 
 
@@ -363,6 +373,7 @@ TC-N-4 — Only singletons in the key. System mentions: only singletons. Since t
 Key/Ref: {a} {b} {c} {d} {e} {f}
 Rsp/Sys: {a} {b} {c} {x} {y} {z}
 
+Expected: MUC=0
 Expected: BLANC=0.20 [recall_n=3/15, prec_n=3/15]
 
 
