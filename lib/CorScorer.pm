@@ -1459,21 +1459,21 @@ sub ComputeBLANCFromCounts {
 		my $f_blanc = -1;
 
 
-		if ( $fcl == 0 && $fncl == 0)
+		if ( $num_key_coreference_links == 0 && $num_key_non_coreference_links == 0)
 		{
 				$r_blanc = 0;
 				$p_blanc = 0;
 				$f_blanc = 0;
 		}
-		elsif ( $fcl == 0 || $fncl == 0)
+		elsif ( $num_key_coreference_links == 0 || $num_key_non_coreference_links == 0)
 		{
-				if ($fcl == 0)
+				if ($num_key_coreference_links == 0)
 				{
 						$r_blanc = $kncl_recall;
 						$p_blanc = $kncl_precision;
 						$f_blanc = $fncl;
 				}
-				elsif ($fncl == 0)
+				elsif ($num_key_non_coreference_links == 0)
 				{
 						$r_blanc = $kcl_recall;
 						$p_blanc = $kcl_precision;
