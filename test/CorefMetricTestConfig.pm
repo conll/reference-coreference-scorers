@@ -31,7 +31,7 @@ our @TestCases = (
                         "bcub" => [6/6, 6/6, 1],
                         "ceafm" => [1, 1, 1],
                         "ceafe" => [1, 1, 1],
-                        "blanc_sys" => [1, 1, 1] }
+                        "blanc" => [1, 1, 1] }
 },
 { id => "A2", 
   key_file => "DataFiles/TC-A.key", 
@@ -40,7 +40,7 @@ our @TestCases = (
                         "bcub" => [(7/3)/6, 3/3, 14/25],
                         "ceafm" => [0.5, 1, 0.66667],
                         "ceafe" => [0.6, 0.9, 0.72],
-                        "blanc_sys" => [0.21591, 1, 0.35385] }
+                        "blanc" => [0.21591, 1, 0.35385] }
 },
 { id => "A3", 
   key_file => "DataFiles/TC-A.key", 
@@ -49,7 +49,7 @@ our @TestCases = (
                         "bcub" => [6/6, (4+7/12)/9, 110/163],
                         "ceafm" => [1, 0.66667, 0.8],
                         "ceafe" => [0.88571, 0.66429, 0.75918],
-                        "blanc_sys" => [1, 0.42593, 0.59717] }
+                        "blanc" => [1, 0.42593, 0.59717] }
 },
 { id => "A4", 
   key_file => "DataFiles/TC-A.key",
@@ -58,7 +58,7 @@ our @TestCases = (
                         "bcub" => [(3+1/3)/6, (1+4/3+1/2)/7, 2*(5/9)*(17/42)/((5/9)+(17/42))],
                         "ceafm" => [0.66667, 0.57143, 0.61538],
                         "ceafe" => [0.73333, 0.55, 0.62857],
-                        "blanc_sys" => [0.35227, 0.27206, 0.30357] }
+                        "blanc" => [0.35227, 0.27206, 0.30357] }
 },
 { id => "A5", 
   key_file => "DataFiles/TC-A.key", 
@@ -67,7 +67,7 @@ our @TestCases = (
                         "bcub" => [(3+1/3)/6, 2.5/8, 2*(5/9)*(5/16)/((5/9)+(5/16))],
                         "ceafm" => [0.66667, 0.5, 0.57143],
                         "ceafe" => [0.68889, 0.51667, 0.59048],
-                        "blanc_sys" => [0.35227, 0.19048, 0.24716] }
+                        "blanc" => [0.35227, 0.19048, 0.24716] }
 },
 { id => "A6", 
   key_file => "DataFiles/TC-A.key", 
@@ -76,7 +76,7 @@ our @TestCases = (
                         "bcub" => [(10/3)/6, (1+4/3+1/2)/8, 2*(5/9)*(17/48)/((5/9)+(17/48))],
                         "ceafm" => [0.66667, 0.5, 0.57143],
                         "ceafe" => [0.73333, 0.55, 0.62857],
-                        "blanc_sys" => [0.35227, 0.20870, 0.25817] }
+                        "blanc" => [0.35227, 0.20870, 0.25817] }
 },
 { id => "A7", 
   key_file => "DataFiles/TC-A.key", 
@@ -85,7 +85,7 @@ our @TestCases = (
                         "bcub" => [(10/3)/6, (1+4/3+1/2)/7, 2*(5/9)*(17/42)/((5/9)+(17/42))],
                         "ceafm" => [0.66667, 0.57143, 0.61538],
                         "ceafe" => [0.73333, 0.55, 0.62857],
-                        "blanc_sys" => [0.35227, 0.27206, 0.30357] }
+                        "blanc" => [0.35227, 0.27206, 0.30357] }
 },
 { id => "A8", 
   key_file => "DataFiles/TC-A.key", 
@@ -94,7 +94,7 @@ our @TestCases = (
                         "bcub" => [(10/3)/6, (1+4/3+1/2)/7, 2*(5/9)*(17/42)/((5/9)+(17/42))],
                         "ceafm" => [0.66667, 0.57143, 0.61538],
                         "ceafe" => [0.73333, 0.55, 0.62857],
-                        "blanc_sys" => [0.35227, 0.27206, 0.30357] }
+                        "blanc" => [0.35227, 0.27206, 0.30357] }
 },
 { id => "A9", 
   key_file => "DataFiles/TC-A.key", 
@@ -103,7 +103,7 @@ our @TestCases = (
                         "bcub" => [(10/3)/6, (1+4/3+1/2)/7, 2*(5/9)*(17/42)/((5/9)+(17/42))],
                         "ceafm" => [0.66667, 0.57143, 0.61538],
                         "ceafe" => [0.73333, 0.55, 0.62857],
-                        "blanc_sys" => [0.35227, 0.27206, 0.30357] }
+                        "blanc" => [0.35227, 0.27206, 0.30357] }
 },
 { id => "A10", 
   key_file => "DataFiles/TC-A.key", 
@@ -112,7 +112,7 @@ our @TestCases = (
                         "bcub" => [3/6, 6/6, 2/3],
                         #”ceafm" => [1, 1, 1],
                         #”ceafe" => [1, 1, 1],
-                        "blanc_sys" => [0.5, 0.36667, 0.42308] }
+                        "blanc" => [0.5, 0.36667, 0.42308] }
 },
 { id => "A11", 
   key_file => "DataFiles/TC-A.key", 
@@ -121,7 +121,7 @@ our @TestCases = (
                         "bcub" => [6/6, (1/6+2*2/6+3*3/6)/6, 14/25],
                         #”ceafm" => [1, 1, 1],
                         #”ceafe" => [1, 1, 1],
-                        "blanc_sys" => [0.5, 0.13333, 0.21053] }
+                        "blanc" => [0.5, 0.13333, 0.21053] }
 },
 { id => "A12", 
   key_file => "DataFiles/TC-A.key", 
@@ -130,7 +130,7 @@ our @TestCases = (
                         "bcub" => [(1+1/2+2/3)/6, 4/7, 2*(13/36)*(4/7)/((13/36)+(4/7))],
                         #”ceafm" => [1, 1, 1],
                         #”ceafe" => [1, 1, 1],
-                        "blanc_sys" => [0.22727, 0.11905, 0.15625] }
+                        "blanc" => [0.22727, 0.11905, 0.15625] }
 },
 { id => "A13", 
   key_file => "DataFiles/TC-A.key", 
@@ -139,7 +139,7 @@ our @TestCases = (
                         "bcub" => [(1+1/2+2*2/3)/6, (1/7+1/7+2*2/7)/7, 2*(17/36)*(6/49)/((17/36)+(6/49))],
                         #”ceafm" => [1, 1, 1],
                         #”ceafe" => [1, 1, 1],
-                        "blanc_sys" => [0.125, 0.02381, 0.04] }
+                        "blanc" => [0.125, 0.02381, 0.04] }
 },
 { id => "B1", 
   key_file => "DataFiles/TC-B.key", 
@@ -148,7 +148,7 @@ our @TestCases = (
                         #"bcub" => [1, 1, 1],
                         #”ceafm" => [1, 1, 1],
                         #”ceafe" => [1, 1, 1],
-                        "blanc_sys" => [1/2 * (1/4 + 1/3), 1/2 * (1/4 + 1/3), 1/2 * (1/4 + 1/3)] }
+                        "blanc" => [1/2 * (1/4 + 1/3), 1/2 * (1/4 + 1/3), 1/2 * (1/4 + 1/3)] }
 },
 { id => "C1", 
   key_file => "DataFiles/TC-C.key", 
@@ -157,7 +157,7 @@ our @TestCases = (
                         #"bcub" => [1, 1, 1],
                         #”ceafm" => [1, 1, 1],
                         #”ceafe" => [1, 1, 1],
-                        "blanc_sys" => [1/2 * (2/5 + 10/16), 1/2 * (2/5 + 10/16), 1/2 * (2/5 + 10/16)] }
+                        "blanc" => [1/2 * (2/5 + 10/16), 1/2 * (2/5 + 10/16), 1/2 * (2/5 + 10/16)] }
 },
 { id => "D1", 
 		key_file => "DataFiles/TC-D.key", 
@@ -166,7 +166,7 @@ our @TestCases = (
                           "bcub" => [12/12, 16/21, 2*(12/12)*(16/21)/(12/12+16/21)],
                           #"ceafm" => [1, 1, 1],
                           #"ceafe" => [1, 1, 1],
-                          #"blanc_sys" => [1, 1, 1]
+                          #"blanc" => [1, 1, 1]
                         }
 },
 { id => "E1", 
@@ -176,7 +176,7 @@ our @TestCases = (
                           "bcub" => [1, 7/12, 2*1*(7/12)/(1+7/12)],
                           #"ceafm" => [1, 1, 1],
                           #"ceafe" => [1, 1, 1],
-                          #"blanc_sys" => [1, 1, 1]
+                          #"blanc" => [1, 1, 1]
                         }
 },
 { id => "F1", 
@@ -186,7 +186,7 @@ our @TestCases = (
                           #"bcub" => ,
                           #"ceafm" => ,
                           #"ceafe" => ,
-                          #"blanc_sys" => 
+                          #"blanc" => 
                         }
 },
 { id => "G1", 
@@ -196,7 +196,7 @@ our @TestCases = (
                           #"bcub" => ,
                           #"ceafm" => ,
                           #"ceafe" => ,
-                          #"blanc_sys" => 
+                          #"blanc" => 
                         }
 },
 { id => "H1", 
@@ -206,7 +206,7 @@ our @TestCases = (
                           #"bcub" => ,
                           #"ceafm" => ,
                           #"ceafe" => ,
-                          #"blanc_sys" => 
+                          #"blanc" => 
                         }
 },
 { id => "I1", 
@@ -216,7 +216,7 @@ our @TestCases = (
                           #"bcub" => ,
                           #"ceafm" => ,
                           #"ceafe" => ,
-                          #"blanc_sys" => 
+                          #"blanc" => 
                         }
 },
 { id => "J1", 
@@ -226,7 +226,7 @@ our @TestCases = (
                           #"bcub" => ,
                           #"ceafm" => ,
                           #"ceafe" => ,
-                          #"blanc_sys" => 
+                          #"blanc" => 
                         }
 },
 { id => "K1", 
@@ -236,7 +236,7 @@ our @TestCases = (
                           #"bcub" => ,
                           #"ceafm" => ,
                           #"ceafe" => ,
-                          #"blanc_sys" => 
+                          #"blanc" => 
                         }
 },
 { id => "L1", 
@@ -246,7 +246,7 @@ our @TestCases = (
                           #"bcub" => ,
                           #"ceafm" => ,
                           #"ceafe" => ,
-                          #"blanc_sys" => 
+                          #"blanc" => 
                         }
 },
 { id => "M1", 
@@ -256,7 +256,7 @@ our @TestCases = (
                           "bcub" => [1, 1, 1],
                           "ceafm" => [1, 1, 1],
                           "ceafe" => [1, 1, 1],
-                          "blanc_sys" => [1, 1, 1] }
+                          "blanc" => [1, 1, 1] }
 },
 { id => "M2", 
 		key_file => "DataFiles/TC-M.key", 
@@ -265,7 +265,7 @@ our @TestCases = (
                           #"bcub" => ,
                           #"ceafm" => ,
                           #"ceafe" => ,
-                          "blanc_sys" => [0, 0, 0] }
+                          "blanc" => [0, 0, 0] }
 },
 { id => "M3", 
 		key_file => "DataFiles/TC-M.key", 
@@ -274,7 +274,7 @@ our @TestCases = (
                           #"bcub" => ,
                           #"ceafm" => ,
                           #"ceafe" => ,
-                          "blanc_sys" => [0.26667, 1, 0.42105] }
+                          "blanc" => [0.26667, 1, 0.42105] }
 },
 { id => "M4", 
 		key_file => "DataFiles/TC-M.key", 
@@ -283,7 +283,7 @@ our @TestCases = (
                           #"bcub" => ,
                           #"ceafm" => ,
                           #"ceafe" => ,
-                          "blanc_sys" => [0.2, 0.2, 0.2] }
+                          "blanc" => [0.2, 0.2, 0.2] }
 },
 { id => "M5", 
 		key_file => "DataFiles/TC-M.key", 
@@ -292,7 +292,7 @@ our @TestCases = (
                           #"bcub" => ,
                           #"ceafm" => ,
                           #"ceafe" => ,
-                          "blanc_sys" => [0, 0, 0] }
+                          "blanc" => [0, 0, 0] }
 },
 { id => "M6", 
 		key_file => "DataFiles/TC-M.key", 
@@ -301,7 +301,7 @@ our @TestCases = (
                           #"bcub" => ,
                           #"ceafm" => ,
                           #"ceafe" => ,
-                          "blanc_sys" => [0.06667, 0.25, 0.10526] }
+                          "blanc" => [0.06667, 0.25, 0.10526] }
 },
 { id => "N1", 
 		key_file => "DataFiles/TC-N.key", 
@@ -310,7 +310,7 @@ our @TestCases = (
                           #"bcub" => [1, 1, 1],
                           #"ceafm" => [1, 1, 1],
                           #"ceafe" => [1, 1, 1],
-                          "blanc_sys" => [1, 1, 1] }
+                          "blanc" => [1, 1, 1] }
 },
 { id => "N2", 
 		key_file => "DataFiles/TC-N.key", 
@@ -319,7 +319,7 @@ our @TestCases = (
                           #"bcub" => ,
                           #"ceafm" => ,
                           #"ceafe" => ,
-                          "blanc_sys" => [0, 0, 0] }
+                          "blanc" => [0, 0, 0] }
 },
 { id => "N3", 
 		key_file => "DataFiles/TC-N.key", 
@@ -328,7 +328,7 @@ our @TestCases = (
                           #"bcub" => ,
                           #"ceafm" => ,
                           #"ceafe" => ,
-                          "blanc_sys" => [0.73333, 1, 0.84615] }
+                          "blanc" => [0.73333, 1, 0.84615] }
 },
 { id => "N4", 
 		key_file => "DataFiles/TC-N.key", 
@@ -337,7 +337,7 @@ our @TestCases = (
                           #"bcub" => ,
                           #"ceafm" => ,
                           #"ceafe" => ,
-                          "blanc_sys" => [0.2, 0.2, 0.2] }
+                          "blanc" => [0.2, 0.2, 0.2] }
 },
 { id => "N5", 
 		key_file => "DataFiles/TC-N.key", 
@@ -346,7 +346,7 @@ our @TestCases = (
                           #"bcub" => ,
                           #"ceafm" => ,
                           #"ceafe" => ,
-                          "blanc_sys" => [0, 0, 0] }
+                          "blanc" => [0, 0, 0] }
 },
 { id => "N6", 
 		key_file => "DataFiles/TC-N.key", 
@@ -355,7 +355,7 @@ our @TestCases = (
                           #"bcub" => ,
                           #"ceafm" => ,
                           #"ceafe" => ,
-                          "blanc_sys" => [0.13333, 0.18182, 0.15385] }
+                          "blanc" => [0.13333, 0.18182, 0.15385] }
 }
 
 );
