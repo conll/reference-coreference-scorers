@@ -25,9 +25,10 @@ use Algorithm::Munkres;
 use Data::Dumper;
 #use Algorithm::Combinatorics qw(combinations);
 use Math::Combinatorics;
+use Cwd;
 
-our $VERSION = '7.0';
-print "version: ".$VERSION."\n";
+our $VERSION = '8.0';
+print "version: ".$VERSION." ".Cwd::realpath(__FILE__)."\n";
 
 #
 #  7.0 Removed code to compute *_cs metrics
@@ -871,32 +872,40 @@ sub BLANC_Internal
   my ($ga, $gr, $ba, $br) = (0, 0, 0, 0);
   my $key_coreference_links = {};
   my $key_non_coreference_links = {};
-
   my $response_coreference_links = {};
   my $response_non_coreference_links = {};
 
 
-  print "list containing list of chains in key:\n";
-  print Dumper $keys;
+  print "list containing list of chains in key:\n" if ($VERBOSE > 2);
+  print Dumper $keys if ($VERBOSE > 2);
 
-  print "each key chain printed individually:\n";
-  foreach my $z (@$keys)
-  {
-    print Dumper $z;
-  }
+  print "each key chain printed individually:\n"  if ($VERBOSE > 2);
 
-  print "list containing list of chains in response:\n";
-  print Dumper $response;
+	if ( $VERBOSE > 2 )
+	{
+			foreach my $z (@$keys)
+			{
+					print Dumper $z;
+			}
+	}
+	
+  print "list containing list of chains in response:\n" if ($VERBOSE > 2);
+  print Dumper $response if ($VERBOSE > 2);
 
-  print "each response chain printed individually:\n";
-  foreach my $z (@$response)
-  {
-    print Dumper $z;
-  }
-  print "---------------------------------------------------------------------------------" . "\n";
+  print "each response chain printed individually:\n" if ($VERBOSE > 2);
+
+	if ($VERBOSE > 2)
+	{
+			foreach my $z (@$response) 
+			{
+					print Dumper $z;
+			}
+	}
+
+  print "---------------------------------------------------------------------------------" . "\n" if ($VERBOSE > 2);
 
 
-  print "combinations of links for each chain in the key:\n";
+  print "combinations of links for each chain in the key:\n" if ($VERBOSE > 2);
   for my $kkk (@$keys)
   {
     my $ccombinat = Math::Combinatorics->new(count => 2,
@@ -905,20 +914,20 @@ sub BLANC_Internal
 
     while(my @zcombo = $ccombinat->next_combination)
     {
-      print Dumper [@zcombo];
+      print Dumper [@zcombo] if ($VERBOSE > 2);
       my @zzcombo = sort {$a <=> $b} @zcombo;
       
       $key_coreference_links->{$zzcombo[0] . "-" . $zzcombo[1]} = 1;
     }
     
-    print "................................................................................\n";
+    print "................................................................................\n" if ($VERBOSE > 2);
   }
 
-  print Dumper $key_coreference_links;
-  print "********************************************************************************\n";
+  print Dumper $key_coreference_links if ($VERBOSE > 2);
+  print "********************************************************************************\n" if ($VERBOSE > 2);
 
-  print "---------------------------------------------------------------------------------" . "\n";
-  print "combinations of links for each chain in the response:\n";
+  print "---------------------------------------------------------------------------------" . "\n" if ($VERBOSE > 2);
+  print "combinations of links for each chain in the response:\n" if ($VERBOSE > 2);
   for my $rrr (@$response)
   {
     my $ccombinat = Math::Combinatorics->new(count => 2,
@@ -927,20 +936,20 @@ sub BLANC_Internal
 
     while(my @zcombo = $ccombinat->next_combination)
     {
-      print Dumper [@zcombo];
+      print Dumper [@zcombo] if ($VERBOSE > 2);
       my @zzcombo = sort {$a <=> $b} @zcombo;
       
       $response_coreference_links->{$zzcombo[0] . "-" . $zzcombo[1]} = 1;
     }
     
-    print "................................................................................\n";
+    print "................................................................................\n" if ($VERBOSE > 2);
   }
 
-  print Dumper $response_coreference_links;
-  print "********************************************************************************\n";
+  print Dumper $response_coreference_links if ($VERBOSE > 2);
+  print "********************************************************************************\n" if ($VERBOSE > 2);
 
   my $number_chains_in_key = @$keys;
-  print "number chains in key: " . $number_chains_in_key . "\n";
+  print "number chains in key: " . $number_chains_in_key . "\n" if ($VERBOSE > 2);
 
   my @s = (0..$number_chains_in_key - 1);
   my $ss = join(' ', @s);
@@ -950,8 +959,8 @@ sub BLANC_Internal
                                           data => [@n],
     );
 
-  print "combinations of 2 from: ".join(" ",@n)."\n";
-  print "------------------------".("--" x scalar(@n))."\n";
+  print "combinations of 2 from: ".join(" ",@n)."\n" if ($VERBOSE > 2);
+  print "------------------------".("--" x scalar(@n))."\n" if ($VERBOSE > 2);
 
   while(my @combo = $combinat->next_combination){
     
@@ -962,32 +971,32 @@ sub BLANC_Internal
     }
     
     my $lkcombo = @kcombo;
-    print "length: " . $lkcombo . "\n";
-    print "kcombo:\n";
-    print "+++++\n";
-    print Dumper [@kcombo];
+    print "length: " . $lkcombo . "\n" if ($VERBOSE > 2);
+    print "kcombo:\n" if ($VERBOSE > 2);
+    print "+++++\n" if ($VERBOSE > 2);
+    print Dumper [@kcombo] if ($VERBOSE > 2);
     my @kccar = cartesian($kcombo[0], $kcombo[1]);
     
     foreach my $x (@kccar)
     {
-      print "--->>>>>>>>>>>>\n";
-      print Dumper $x;
+      print "--->>>>>>>>>>>>\n" if ($VERBOSE > 2);
+      print Dumper $x if ($VERBOSE > 2);
       my @y = sort {$a <=> $b} @$x;
-      print Dumper [@y];
+      print Dumper [@y] if ($VERBOSE > 2);
       $key_non_coreference_links->{@y[0] . "-" . @y[1]} = 1
     }
     
-    print Dumper $key_non_coreference_links;
-    print "" . "\n";
+    print Dumper $key_non_coreference_links if ($VERBOSE > 2);
+    print "" . "\n" if ($VERBOSE > 2);
     
-    print ".....\n";
+    print ".....\n" if ($VERBOSE > 2);
     
-    print "\n";
+    print "\n" if ($VERBOSE > 2);
   }
 
-  print "\n";
+  print "\n" if ($VERBOSE > 2);
   my $number_chains_in_response = @$response;
-  print "number chains in response: " . $number_chains_in_response . "\n";
+  print "number chains in response: " . $number_chains_in_response . "\n" if ($VERBOSE > 2);
 
   my @s = (0..$number_chains_in_response - 1);
   my $ss = join(' ', @s);
@@ -997,8 +1006,8 @@ sub BLANC_Internal
                                           data => [@n],
     );
   
-  print "combinations of 2 from: ".join(" ",@n)."\n";
-  print "------------------------".("--" x scalar(@n))."\n";
+  print "combinations of 2 from: ".join(" ",@n)."\n" if ($VERBOSE > 2);
+  print "------------------------".("--" x scalar(@n))."\n" if ($VERBOSE > 2);
 
   while(my @combo = $combinat->next_combination){
     my @kcombo = ();
@@ -1008,36 +1017,36 @@ sub BLANC_Internal
     }
 
     my $lkcombo = @kcombo;
-    print "length: " . $lkcombo . "\n";
-    print "kcombo:\n";
-    print "+++++\n";
-    print Dumper [@kcombo];
+    print "length: " . $lkcombo . "\n" if ($VERBOSE > 2);
+    print "kcombo:\n" if ($VERBOSE > 2);
+    print "+++++\n" if ($VERBOSE > 2);
+    print Dumper [@kcombo] if ($VERBOSE > 2);
     my @kccar = cartesian($kcombo[0], $kcombo[1]);
     
     foreach my $x (@kccar)
     {
-      print "--->>>>>>>>>>>>\n";
-      print Dumper $x;
+      print "--->>>>>>>>>>>>\n" if ($VERBOSE > 2);
+      print Dumper $x if ($VERBOSE > 2);
       my @y = sort {$a <=> $b} @$x;
-      print Dumper [@y];
+      print Dumper [@y] if ($VERBOSE > 2);
       $response_non_coreference_links->{@y[0] . "-" . @y[1]} = 1
     }
 			
-    print Dumper $response_non_coreference_links;
-    print "" . "\n";
+    print Dumper $response_non_coreference_links if ($VERBOSE > 2);
+    print "" . "\n" if ($VERBOSE > 2);
 
-    print ".....\n";
-    print "\n";
+    print ".....\n" if ($VERBOSE > 2);
+    print "\n" if ($VERBOSE > 2);
   }
   
-  print "\n";
+  print "\n" if ($VERBOSE > 2);
   
-  print "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n";
-  print Dumper $key_coreference_links;
-  print Dumper $response_coreference_links;
-  print Dumper $key_non_coreference_links;
-  print Dumper $response_non_coreference_links;
-  print "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n";
+  print "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n" if ($VERBOSE > 2);
+  print Dumper $key_coreference_links if ($VERBOSE > 2);
+  print Dumper $response_coreference_links if ($VERBOSE > 2);
+  print Dumper $key_non_coreference_links if ($VERBOSE > 2);
+  print Dumper $response_non_coreference_links if ($VERBOSE > 2);
+  print "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n" if ($VERBOSE > 2);
 	
   my @union_cl = my @isect_cl = ();
   my %union_cl = my %isect_cl = ();
@@ -1045,18 +1054,18 @@ sub BLANC_Internal
   my @kcl = keys %$key_coreference_links;
   my @rcl = keys %$response_coreference_links;
 
-  print Dumper @kcl;
-  print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
-  print Dumper @rcl;
-  print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
+  print Dumper @kcl if ($VERBOSE > 2);
+  print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n" if ($VERBOSE > 2);
+  print Dumper @rcl if ($VERBOSE > 2);
+  print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n" if ($VERBOSE > 2);
 
   foreach my $e (@kcl, @rcl) { $union_cl{$e}++ && $isect_cl{$e}++}
 
   @union_cl = keys %union_cl;
   @isect_cl = keys %isect_cl;
 
-  print Dumper @isect_cl;
-  print "********************************************************************************\n";
+  print Dumper @isect_cl if ($VERBOSE > 2);
+  print "********************************************************************************\n" if ($VERBOSE > 2);
 
   my @union_ncl = my @isect_ncl = ();
   my %union_ncl = my %isect_ncl = ();
@@ -1064,45 +1073,45 @@ sub BLANC_Internal
   my @kncl = keys %$key_non_coreference_links;
   my @rncl = keys %$response_non_coreference_links;
 
-  print Dumper @kncl;
-  print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
-  print Dumper @rncl;
-  print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
+  print Dumper @kncl if ($VERBOSE > 2);
+  print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n" if ($VERBOSE > 2);
+  print Dumper @rncl if ($VERBOSE > 2);
+  print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n" if ($VERBOSE > 2);
   
   foreach my $e (@kncl, @rncl) { $union_ncl{$e}++ && $isect_ncl{$e}++}
   
   @union_ncl = keys %union_ncl;
   @isect_ncl = keys %isect_ncl;
 
-  print Dumper @isect_ncl;
-  print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
+  print Dumper @isect_ncl if ($VERBOSE > 2);
+  print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n" if ($VERBOSE > 2);
 
   my $num_isect_cl = @isect_cl;
-  print "    number of links in the intersection of key and response coreference links: " . $num_isect_cl . "\n";
+  print "    number of links in the intersection of key and response coreference links: " . $num_isect_cl . "\n" if ($VERBOSE > 2);
 
   my $num_isect_ncl = @isect_ncl;
-  print "number of links in the intersection of key and response non-coreference links: " . $num_isect_ncl . "\n";
+  print "number of links in the intersection of key and response non-coreference links: " . $num_isect_ncl . "\n" if ($VERBOSE > 2);
 	
   my $num_key_coreference_links = keys %$key_coreference_links;
-  print "number of key coreference links: " . $num_key_coreference_links . "\n";
+  print "number of key coreference links: " . $num_key_coreference_links . "\n" if ($VERBOSE > 2);
 
   my $num_response_coreference_links = keys %$response_coreference_links;
-  print "number of response coreference links: " . $num_response_coreference_links . "\n";
+  print "number of response coreference links: " . $num_response_coreference_links . "\n" if ($VERBOSE > 2);
 
   my $num_key_non_coreference_links = keys %$key_non_coreference_links;
-  print "number of key non-coreference links: " . $num_key_non_coreference_links . "\n";
+  print "number of key non-coreference links: " . $num_key_non_coreference_links . "\n" if ($VERBOSE > 2);
   
   my $num_response_non_coreference_links = keys %$response_non_coreference_links;
-  print "number of response non-coreference links: " . $num_response_non_coreference_links . "\n";
+  print "number of response non-coreference links: " . $num_response_non_coreference_links . "\n" if ($VERBOSE > 2);
 
   my ($r_blanc, $p_blanc, $f_blanc) = ComputeBLANCFromCounts(
     $num_isect_cl, $num_key_coreference_links, $num_response_coreference_links,
     $num_isect_ncl, $num_key_non_coreference_links, $num_response_non_coreference_links);
   
-  print "   blanc recall: " . $r_blanc . "\n";
-  print "blanc precision: " . $p_blanc . "\n";
-  print "  blanc score: " . $f_blanc . "\n"; 
-  print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n";
+  print "   blanc recall: " . $r_blanc . "\n" if ($VERBOSE > 2);
+  print "blanc precision: " . $p_blanc . "\n" if ($VERBOSE > 2);
+  print "  blanc score: " . $f_blanc . "\n" if ($VERBOSE > 2);
+  print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n" if ($VERBOSE > 2);
 
   return ($num_isect_cl, $num_key_coreference_links, $num_isect_cl, $num_response_coreference_links,
           $num_isect_ncl, $num_key_non_coreference_links, $num_isect_ncl,$num_response_non_coreference_links);
@@ -1122,24 +1131,24 @@ sub ComputeBLANCFromCounts {
     my $kcl_recall = ($num_key_coreference_links == 0)?0 : ($num_isect_cl / $num_key_coreference_links);
     my $kcl_precision = ($num_response_coreference_links == 0)?0 : ($num_isect_cl / $num_response_coreference_links);
 
-    print "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n";
-    print "       coreference recall: " . $kcl_recall . "\n";
-    print "    coreference precision: " . $kcl_precision . "\n";
+    print "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n" if ($VERBOSE > 2);
+    print "       coreference recall: " . $kcl_recall . "\n" if ($VERBOSE > 2);
+    print "    coreference precision: " . $kcl_precision . "\n" if ($VERBOSE > 2);
 	
 
     my $fcl = ($kcl_recall + $kcl_precision == 0)? 0: (2 * $kcl_recall * $kcl_precision / ($kcl_recall + $kcl_precision));
-    print "      coreference f-score: " . $fcl . "\n";
+    print "      coreference f-score: " . $fcl . "\n" if ($VERBOSE > 2);
 
     my $kncl_recall = ($num_key_non_coreference_links == 0)? 0 : ($num_isect_ncl / $num_key_non_coreference_links);
     my $kncl_precision = ($num_response_non_coreference_links == 0)? 0: ($num_isect_ncl / $num_response_non_coreference_links);
 
-    print "--------------------------------------------------------------------------------\n";
-    print "   non-coreference recall: " . $kncl_recall . "\n";
-    print "non-coreference precision: " . $kncl_precision . "\n";
+    print "--------------------------------------------------------------------------------\n" if ($VERBOSE > 2);
+    print "   non-coreference recall: " . $kncl_recall . "\n" if ($VERBOSE > 2);
+    print "non-coreference precision: " . $kncl_precision . "\n" if ($VERBOSE > 2);
 	
     my $fncl = ($kncl_recall + $kncl_precision == 0)? 0 : (2 * $kncl_recall * $kncl_precision / ($kncl_recall + $kncl_precision));
-    print "  non-coreference f-score: " . $fncl . "\n";
-    print "--------------------------------------------------------------------------------\n";
+    print "  non-coreference f-score: " . $fncl . "\n" if ($VERBOSE > 2);
+    print "--------------------------------------------------------------------------------\n" if ($VERBOSE > 2);
 
 
 		my $r_blanc = -1;
