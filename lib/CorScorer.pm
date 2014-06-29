@@ -30,6 +30,10 @@ use Cwd;
 our $VERSION = '8.0';
 print "version: ".$VERSION." ".Cwd::realpath(__FILE__)."\n";
 
+
+##
+#  8.0 added code to compute the BLANC metric (generalized for both gold
+#      and system mentions (Luo et al., 2014)  
 #
 #  7.0 Removed code to compute *_cs metrics
 #
