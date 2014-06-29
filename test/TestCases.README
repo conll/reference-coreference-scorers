@@ -98,7 +98,7 @@ Expected: CEAFe=4.4/7=0.63 [common=1+4/5+2/5=2.2, recall=2.2/3=0.73, Prec=2.2/4=
 Expected: BLANC=0.30 [recall_c=1/4, prec_c=1/4, recall_n=5/11, prec_n=5/17]
 
 
-TC-A-10 — Gold mentions. Only singletons in the response.
+TC-A-10 - Gold mentions. Only singletons in the response.
 Key/Ref: {a} {bc} {def}
 Rsp/Sys: {a} {b} {c} {d} {e} {f}
 Expected: BCUB=.6667 [recall=3/6, prec=6/6]
@@ -106,7 +106,7 @@ Expected: MUC=0 [recall=0, prec=0]
 Expected: BLANC=0.42 [recall_c=0/4, prec_c=0/0, f_c=0, recall_n=11/11, prec_n=11/15]
 
 
-TC-A-11 — Gold mentions. All mentions are coreferent in the response.
+TC-A-11 - Gold mentions. All mentions are coreferent in the response.
 Key/Ref: {a} {bc} {def}
 Rsp/Sys: {abcdef}
 
@@ -115,7 +115,7 @@ Expected: MUC=6/8=0.75 [recall=3/3, prec=3/5]
 Expected: BLANC=0.21 [recall_c=4/4, prec_c=4/15, recall_n=0/11, prec_n=0/0, f_n=0]
 
 
-TC-A-12 — System mentions. Only singletons in the response.
+TC-A-12 - System mentions. Only singletons in the response.
 Key/Ref: {a} {bc} {def}
 Rsp/Sys: {a} {x} {y} {c} {d} {e} {z}
 
@@ -124,7 +124,7 @@ Expected: MUC=0 [recall=0, prec=0]
 Expected: BLANC=0.16 [recall_c=0/4, prec_c=0/0, f_c=0, recall_n=5/11, prec_n=5/21]
 
 
-TC-A-13 — System mentions. All mentions are coreferent in the response.
+TC-A-13 - System mentions. All mentions are coreferent in the response.
 Key/Ref: {a} {bc} {def}
 Rsp/Sys: {axycdez}
 
@@ -133,7 +133,7 @@ Expected: MUC=2/9 [recall=1/3, prec=1/6]
 Expected: BLANC=0.04 [recall_c=1/4, prec_c=1/21, recall_n=0/11, prec_n=0/0, f_n=0]
 
 
-TC—B-1 -- spurious mention (x) and missing mention (a) in response
+TC-B-1 -- spurious mention (x) and missing mention (a) in response; link (bc) is a key non-coref link and is an incorrect response coref link.
 
     Keys: {ab} {cde} 
 Response: {bcx} {de}
@@ -150,12 +150,10 @@ N_k ^ N_r = {(bd), (be)} => R_n = |N_k^N_r|/|N_k| = 2/6,  P_n = 2/|N_r| = 2/6, F
 
 BLANC = 1/2 (F_c + F_n) = 7/24.
 
-Note that in this example, link (bc) is a key non-coref link and is an
-incorrect response coref link.
 
 
 
-TC—C-1 -- spurious mention (x) and missing mention (a) in response
+	TC-C-1 -- same as TC14 plus a new entity and its correct prediction shown. this was for testing the more than two entity case.
 
     Keys: {ab} {cde} {fg}
 Response: {bcx} {de} {fg}
@@ -176,7 +174,7 @@ BLANC = 1/2 (F_c + F_n) = 0.5125
 
 # ------------ examples from the B-CUBED paper
 
-TC—D-1 -- merging one small cluster with a big cluster
+TC-D-1 -- merging one small cluster with a big cluster
 
 key: {12345} {67} {89ABC}
 ---
@@ -204,7 +202,7 @@ Expected:  MUC [r=9/9, p=9/10, f=0.947368421]
 
 
 
-TC—E-1 -- merging two big clusters
+TC-E-1 -- merging two big clusters
 
 
 key: {12345} {67} {89ABC}
@@ -234,7 +232,7 @@ Expected:  MUC [r=9/9, p=9/10, f=0.947368421]
 
 # ---------- examples from the MUC paper
 
-TC—F-1 -- 
+TC-F-1 -- 
 
      key: {ABCD}    ---- Links: A-B; B-C; C-D
 response: {AB} {CD} ---- Links: A-B; C-D
@@ -243,7 +241,7 @@ Expected:  MUC [r=2/3, p=2/2, f=2*(2/3)*(2/2)/(2/3+2/2)]
 
 
 
-TC—G-1 --
+TC-G-1 --
 
      key: {AB} {CD} ---- Links: A-B; C-D
 response: {ABCD}    ---- Links: A-B; B-C; C-D
@@ -252,7 +250,7 @@ Expected:  MUC [r=2/2, p=2/3, f=2*(2/2)*(2/3)/(2/2+2/3)]
 
 
 
-TC—H-1 --
+TC-H-1 --
 
      key: {ABCD} ---- Links: A-B; B-C; B-D
 response: {ABCD} ---- Links: A-B; B-C; C-D
@@ -261,7 +259,7 @@ Expected:  MUC [r=1, p=1, f=1]
 
 
 
-TC—I-1 --
+TC-I-1 --
 
      key: {ABCD}    ---- Links: A-B; B-C; B-D
 response: {AB} {CD} ---- Links: A-B; C-D
@@ -270,7 +268,7 @@ Expected:  MUC [r=2/3, p=2/2, f=2*(2/3)*(2/2)/(2/3+2/2)]
 
 
 
-TC—J-1 --
+TC-J-1 --
 
      key: {ABC} ---- Links: A-B; B-C
 response: {AC}  ---- Links: A-C
@@ -279,7 +277,7 @@ Expected:  MUC [r=1/2, p=1/1, f=2*(1/2)*(1/1)/(1/2+1/1)]
 
 
 
-TC—K-1 --
+TC-K-1 --
 
      key: {BCDEGHJ}         ---- Links: B-C; C-D; D-E; E-G; G-H; H-J
 response: {ABC} {DEF} {GHI} ---- Links: A-B; B-C; D-E; E-F; G-H; H-I
@@ -288,7 +286,7 @@ Expected:  MUC [r=3/6, p=3/6, f=3/6]
 
 
 
-TC—L-1 --
+TC-L-1 --
 
      key: {ABC} {DEFG}    ---- Links: A-B; B-C; D-E; E-F; F-G
 response: {AB} {CD} {FGH} ---- Links: A-B; C-D; F-G; G-H
@@ -296,7 +294,7 @@ response: {AB} {CD} {FGH} ---- Links: A-B; C-D; F-G; G-H
 Expected:  MUC [r=2/5, p=2/4, f=2*(2/5)*(2/4)/(2/5+2/4)]
 
 
-TC-M-1 — Only coreferent mentions in the key. Gold mentions. Matching response. Since the key contains no non-coreference link, BLANC equals recall_c, prec_c, F_c.
+TC-M-1 - Only coreferent mentions in the key. Gold mentions. Matching response. Since the key contains no non-coreference link, BLANC equals recall_c, prec_c, F_c.
 Key/Ref: {abcdef}
 Rsp/Sys: {abcdef}
 
@@ -307,7 +305,7 @@ Expected: CEAFe=1
 Expected: BLANC=1 [recall_c=15/15=1, prec_c=15/15=1]
 
 
-TC-M-2 — Only coreferent mentions in the key. Gold mentions. Response contains only non-coreference links. 
+TC-M-2 - Only coreferent mentions in the key. Gold mentions. Response contains only non-coreference links. 
 Key/Ref: {abcdef}
 Rsp/Sys: {a} {b} {c} {d} {e} {f}
 
@@ -315,21 +313,21 @@ Expected: MUC=0
 Expected: BLANC=0 [recall_c=0/15=0, prec_c=0/0=0]
 
 
-TC-M-3 — Only coreferent mentions in the key. Gold mentions. Response contains coreference and non-coreference links. 
+TC-M-3 - Only coreferent mentions in the key. Gold mentions. Response contains coreference and non-coreference links. 
 Key/Ref: {abcdef}
 Rsp/Sys: {ab} {cde} {f}
 
 Expected: BLANC=0.42 [recall_c=4/15, prec_c=4/4=1]
 
 
-TC-M-4 — Only coreferent mentions in the key. System mentions: only coreferent mentions. Since the key contains no non-coreference link, BLANC equals recall_c, prec_c, F_c.
+TC-M-4 - Only coreferent mentions in the key. System mentions: only coreferent mentions. Since the key contains no non-coreference link, BLANC equals recall_c, prec_c, F_c.
 Key/Ref: {abcdef}
 Rsp/Sys: {abcxyz}
 
 Expected: BLANC=0.20 [recall_c=3/15, prec_c=3/15]
 
 
-TC-M-5 — Only coreferent mentions in the key. System mentions: only singletons.
+TC-M-5 - Only coreferent mentions in the key. System mentions: only singletons.
 Key/Ref: {abcdef}
 Rsp/Sys: {a} {b} {c} {x} {y} {z}
 
@@ -337,14 +335,14 @@ Expected: MUC=0
 Expected: BLANC=0 [recall_c=0/15=0, prec_c=0/0=0]
 
 
-TC-M-6 — Only coreferent mentions in the key. System mentions: coreference and non-coreference links. 
+TC-M-6 - Only coreferent mentions in the key. System mentions: coreference and non-coreference links. 
 Key/Ref: {abcdef}
 Rsp/Sys: {ab} {cxy} {z}
 
 Expected: BLANC=0.11 [recall_c=1/15, prec_c=1/4]
 
 
-TC-N-1 — Only singletons in the key. Gold mentions. Matching response. Since the key contains no coreference link, BLANC equals recall_n, prec_n, F_n.
+TC-N-1 - Only singletons in the key. Gold mentions. Matching response. Since the key contains no coreference link, BLANC equals recall_n, prec_n, F_n.
 Key/Ref: {a} {b} {c} {d} {e} {f}
 Rsp/Sys: {a} {b} {c} {d} {e} {f}
 
@@ -355,21 +353,21 @@ Expected: CEAFe=1
 Expected: BLANC=1 [recall_n=15/15=1, prec_n=15/15=1]
 
 
-TC—N-2 — Only singletons in the key. Gold mentions. Response contains only coreference links. 
+TC-N-2 - Only singletons in the key. Gold mentions. Response contains only coreference links. 
 Key/Ref: {a} {b} {c} {d} {e} {f}
 Rsp/Sys: {abcdef}
 
 Expected: BLANC=0 [recall_n=0/15=0, prec_n=0/0=0]
 
 
-TC—N-3 — Only singletons in the key. Gold mentions. Response contains coreference and non-coreference links. 
+TC-N-3 - Only singletons in the key. Gold mentions. Response contains coreference and non-coreference links. 
 Key/Ref: {a} {b} {c} {d} {e} {f}
 Rsp/Sys: {ab} {cde} {f}
 
 Expected: BLANC=0.85 [recall_n=11/15, prec_n=11/11=1]
 
 
-TC-N-4 — Only singletons in the key. System mentions: only singletons. Since the key contains no coreference link, BLANC equals recall_n, prec_n, F_n.
+TC-N-4 - Only singletons in the key. System mentions: only singletons. Since the key contains no coreference link, BLANC equals recall_n, prec_n, F_n.
 Key/Ref: {a} {b} {c} {d} {e} {f}
 Rsp/Sys: {a} {b} {c} {x} {y} {z}
 
@@ -377,14 +375,14 @@ Expected: MUC=0
 Expected: BLANC=0.20 [recall_n=3/15, prec_n=3/15]
 
 
-TC—N-5 — Only singletons in the key. System mentions: only coreference links. 
+TC-N-5 - Only singletons in the key. System mentions: only coreference links. 
 Key/Ref: {a} {b} {c} {d} {e} {f}
 Rsp/Sys: {abcxyz}
 
 Expected: BLANC=0 [recall_n=0/15=0, prec_n=0/0=0]
 
 
-TC—N-6 — Only singletons in the key. Only coreferent mentions in the key. System mentions: coreference and non-coreference links. 
+TC-N-6 - Only singletons in the key. Only coreferent mentions in the key. System mentions: coreference and non-coreference links. 
 Key/Ref: {a} {b} {c} {d} {e} {f}
 Rsp/Sys: {ab} {cxy} {z}
 
