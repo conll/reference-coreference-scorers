@@ -1,6 +1,7 @@
 package CorScorer;
 
 # Copyright (C) 2009-2011, Emili Sapena esapena <at> lsi.upc.edu
+#               2011-2014, Sameer Pradhan <at> childrens.harvard.edu
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
@@ -19,6 +20,10 @@ package CorScorer;
 #
 # Revised in July, 2013 by Xiaoqiang Luo (xql <at> google.com) to create v6.0.
 # See comments under $VERSION for modifications.
+#
+# Revised in March, 2014 by Sameer Pradhan (sameer.pradhan <at> childrens.harvard.edu)
+# to implement the BLANC metric for predicted mentions
+
 
 use strict;
 use Algorithm::Munkres;
