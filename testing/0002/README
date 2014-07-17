@@ -1,0 +1,24 @@
+
+creating the test that xiaoqiang created
+
+
+
+
+
+Keys: {ab} {cde} {fg}
+Response: {bcx} {de} {fg}
+
+         key coref links: C_k = {(ab), (cd), (de), (ce), (fg)}} 
+     key non-coref links: N_k = {(ac), (ad), (ae), (bc), (bd), (be), (af), (ag), (bf), (bg), (cf), (cg), (df), (dg), (ef), (eg)}
+
+    response coref links: C_r = {(bc), (bx), (cx), (de), (fg)}
+response non-coref links: N_r = {(bd), (be), (cd), (ce), (xd), (xe), (bf), (bg), (cf), (cg), (xf), (xg), (df), (dg), (ef), (eg)}
+
+(I'll use ^ for set intersection)
+C_k ^ C_r = {(de), (fg)} => R_c = |C_k^C_r| / |C_k| = 2/5, P_c = 2/|C_r| = 2/5, F_c = 2/5 = 0.40
+N_k ^ N_r = {(bd), (be), (bf), (bg), (cf), (cg), (df), (dg), (ef), (eg)} => R_n = |N_k^N_r|/|N_k| = 10/16,  P_n = 10/|N_r| = 10/16, F_n = 10/16 = 0.625
+
+BLANC = 1/2 (F_c + F_n) = 0.5125
+
+
+
