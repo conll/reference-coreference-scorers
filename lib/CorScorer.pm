@@ -14,32 +14,39 @@ package CorScorer;
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 #
-# Modified in 2013 for v1.07 by Sebastian Martschat, 
+# Modified in 2013 for v1.07 by Sebastian Martschat,
 #   sebastian.martschat <at> h-its.org
 #
 # Revised in July, 2013 by Xiaoqiang Luo (xql <at> google.com) to create v6.0.
-# See comments under $VERSION for modifications.  
+# See comments under $VERSION for modifications.
 
 use strict;
 use Algorithm::Munkres;
+use Data::Dumper;
 
-our $VERSION = '7.0';
-print "version: ".$VERSION."\n";
+#use Algorithm::Combinatorics qw(combinations);
+use Math::Combinatorics;
+use Cwd;
 
+our $VERSION = '8.0';
+print "version: " . $VERSION . " " . Cwd::realpath(__FILE__) . "\n";
 
+##
+#  8.0 added code to compute the BLANC metric (generalized for both gold
+#      and system mentions (Luo et al., 2014)
 #
 #  7.0 Removed code to compute *_cs metrics
 #
-#  6.0 The directory hosting the scorer is under v6 and internal $VERSION is 
-#      set to "6.0." 
-#      Changes: 
-#      - 'ceafm', 'ceafe' and 'bcub' in the previous version are renamed 
-#        'ceafm_cs', 'ceafe_cs', and 'bcub_cs', respectively. 
+#  6.0 The directory hosting the scorer is under v6 and internal $VERSION is
+#      set to "6.0."
+#      Changes:
+#      - 'ceafm', 'ceafe' and 'bcub' in the previous version are renamed
+#        'ceafm_cs', 'ceafe_cs', and 'bcub_cs', respectively.
 #      - 'ceafm', 'ceafe' and 'bcub' are implemented without (Cai&Strube 2010)
 #         modification. These metrics can handle twinless mentions and entities
-#         just fine. 
+#         just fine.
 #
-# 1.07 Modifications to implement BCUB and CEAFM 
+# 1.07 Modifications to implement BCUB and CEAFM
 #      exactly as proposed by (Cai & Strube, 2010).
 # 1.06 ?
 # 1.05 Modification of IdentifMentions in order to correctly evaluate the
@@ -48,14 +55,11 @@ print "version: ".$VERSION."\n";
 # 1.03 Detects mentions that start in a document but do not end
 # 1.02 Corrected BCUB bug. It fails when the key file does not have any mention
 
-
-
 # global variables
-my $VERBOSE = 1;
-my $HEAD_COLUMN = 8;
+my $VERBOSE         = 2;
+my $HEAD_COLUMN     = 8;
 my $RESPONSE_COLUMN = -1;
-my $KEY_COLUMN = -1;
-
+my $KEY_COLUMN      = -1;
 
 # Score. Scores the results of a coreference resolution system
 # Input: Metric, keys file, response file, [name]
@@ -76,19 +80,32 @@ my $KEY_COLUMN = -1;
 # Recall = recall_num / recall_den
 # Precision = precision_num / precision_den
 # F1 = 2 * Recall * Precision / (Recall + Precision)
-sub Score
-{
+sub Score {
   my ($metric, $kFile, $rFile, $name) = @_;
 
-  my %idenTotals = (recallDen => 0, recallNum => 0, precisionDen => 0, precisionNum => 0);
-  my ($acumNR, $acumDR, $acumNP, $acumDP) = (0,0,0,0);
+  if (lc($metric) eq 'blanc') {
+    return ScoreBLANC($kFile, $rFile, $name);
+  }
+
+  my %idenTotals =
+    (recallDen => 0, recallNum => 0, precisionDen => 0, precisionNum => 0);
+  my ($acumNR, $acumDR, $acumNP, $acumDP) = (0, 0, 0, 0);
 
   if (defined($name) && $name ne 'none') {
     print "$name:\n" if ($VERBOSE);
-    my $keys = GetCoreference($kFile, $KEY_COLUMN, $name);
+    my $keys     = GetCoreference($kFile, $KEY_COLUMN,      $name);
     my $response = GetCoreference($rFile, $RESPONSE_COLUMN, $name);
-    my ($keyChains, $keyChainsWithSingletonsFromResponse, $responseChains, $responseChainsWithoutMentionsNotInKey, $keyChainsOrig, $responseChainsOrig) = IdentifMentions($keys, $response, \%idenTotals);
-    ($acumNR, $acumDR, $acumNP, $acumDP) = Eval($metric, $keyChains, $keyChainsWithSingletonsFromResponse, $responseChains, $responseChainsWithoutMentionsNotInKey, $keyChainsOrig, $responseChainsOrig);
+    my (
+      $keyChains, $keyChainsWithSingletonsFromResponse,
+      $responseChains, $responseChainsWithoutMentionsNotInKey,
+      $keyChainsOrig, $responseChainsOrig
+    ) = IdentifMentions($keys, $response, \%idenTotals);
+    ($acumNR, $acumDR, $acumNP, $acumDP) = Eval(
+      $metric,                                $keyChains,
+      $keyChainsWithSingletonsFromResponse,   $responseChains,
+      $responseChainsWithoutMentionsNotInKey, $keyChainsOrig,
+      $responseChainsOrig
+    );
   }
   else {
     my $kIndexNames = GetFileNames($kFile);
@@ -96,12 +113,23 @@ sub Score
 
     $VERBOSE = 0 if ($name eq 'none');
     foreach my $iname (keys(%{$kIndexNames})) {
-      my $keys = GetCoreference($kFile, $KEY_COLUMN, $iname, $kIndexNames->{$iname});
-      my $response = GetCoreference($rFile, $RESPONSE_COLUMN, $iname, $rIndexNames->{$iname});
+      my $keys =
+        GetCoreference($kFile, $KEY_COLUMN, $iname, $kIndexNames->{$iname});
+      my $response = GetCoreference($rFile, $RESPONSE_COLUMN, $iname,
+        $rIndexNames->{$iname});
 
       print "$iname:\n" if ($VERBOSE);
-      my ($keyChains, $keyChainsWithSingletonsFromResponse, $responseChains, $responseChainsWithoutMentionsNotInKey, $keyChainsOrig, $responseChainsOrig) = IdentifMentions($keys, $response, \%idenTotals);
-      my ($nr, $dr, $np, $dp) = Eval($metric, $keyChains, $keyChainsWithSingletonsFromResponse, $responseChains, $responseChainsWithoutMentionsNotInKey, $keyChainsOrig, $responseChainsOrig);
+      my (
+        $keyChains,      $keyChainsWithSingletonsFromResponse,
+        $responseChains, $responseChainsWithoutMentionsNotInKey,
+        $keyChainsOrig,  $responseChainsOrig
+      ) = IdentifMentions($keys, $response, \%idenTotals);
+      my ($nr, $dr, $np, $dp) = Eval(
+        $metric,                                $keyChains,
+        $keyChainsWithSingletonsFromResponse,   $responseChains,
+        $responseChainsWithoutMentionsNotInKey, $keyChainsOrig,
+        $responseChainsOrig
+      );
 
       $acumNR += $nr;
       $acumDR += $dr;
@@ -113,8 +141,10 @@ sub Score
   if ($VERBOSE || $name eq 'none') {
     print "\n====== TOTALS =======\n";
     print "Identification of Mentions: ";
-    ShowRPF($idenTotals{recallNum}, $idenTotals{recallDen}, $idenTotals{precisionNum},
-          $idenTotals{precisionDen});
+    ShowRPF(
+      $idenTotals{recallNum},    $idenTotals{recallDen},
+      $idenTotals{precisionNum}, $idenTotals{precisionDen}
+    );
     print "Coreference: ";
     ShowRPF($acumNR, $acumDR, $acumNP, $acumDP);
   }
@@ -122,10 +152,7 @@ sub Score
   return ($acumNR, $acumDR, $acumNP, $acumDP);
 }
 
-
-
-sub GetIndex
-{
+sub GetIndex {
   my ($ind, $i) = @_;
   if (!defined($ind->{$i})) {
     my $n = $ind->{nexti} || 0;
@@ -153,13 +180,12 @@ sub GetIndex
 # if $name is not specified, the output is a hash including each file
 # found in the document:
 # $coref{$file} = \@entities
-sub GetCoreference
-{
+sub GetCoreference {
   my ($file, $column, $name, $pos) = @_;
   my %coref;
   my %ind;
 
-  open (F, $file) || die "Can not open $file: $!";
+  open(F, $file) || die "Can not open $file: $!";
   if ($pos) {
     seek(F, $pos, 0);
   }
@@ -169,11 +195,11 @@ sub GetCoreference
     # look for the begin of a file
     while (my $l = <F>) {
       chomp($l);
-      $l =~ s/\r$//; # m$ format jokes
+      $l =~ s/\r$//;    # m$ format jokes
       if ($l =~ /^\#\s*begin document (.*?)$/) {
         if (defined($name)) {
           if ($name eq $1) {
-            $fName = $name;
+            $fName  = $name;
             $getout = 1;
             last;
           }
@@ -205,8 +231,8 @@ sub GetCoreference
       }
       my @columns = split(/\t/, $l);
       my $cInfo = $columns[$column];
-      push (@head, $columns[$HEAD_COLUMN]);
-      push (@sentId, $columns[0]);
+      push(@head,   $columns[$HEAD_COLUMN]);
+      push(@sentId, $columns[0]);
       if ($cInfo ne '_') {
 
         #discard double antecedent
@@ -217,8 +243,9 @@ sub GetCoreference
         # one-token mention(s)
         while ($cInfo =~ s/\((\d+)\)//) {
           my $ie = GetIndex(\%ind, $1);
-          push(@{$entities[$ie]}, [ $lnumber, $lnumber, $lnumber ]);
-          print "+mention (entity $ie): ($lnumber,$lnumber)\n" if ($VERBOSE > 2);
+          push(@{$entities[$ie]}, [$lnumber, $lnumber, $lnumber]);
+          print "+mention (entity $ie): ($lnumber,$lnumber)\n"
+            if ($VERBOSE > 2);
         }
 
         # begin of mention(s)
@@ -231,23 +258,25 @@ sub GetCoreference
         # end of mention(s)
         while ($cInfo =~ s/(\d+)\)//) {
           my $numberie = $1;
-          my $ie = GetIndex(\%ind, $numberie);
-          my $start = pop(@{$half[$ie]});
+          my $ie       = GetIndex(\%ind, $numberie);
+          my $start    = pop(@{$half[$ie]});
           if (defined($start)) {
-            my $inim = $sentId[$start];
-            my $endm = $sentId[$lnumber];
+            my $inim  = $sentId[$start];
+            my $endm  = $sentId[$lnumber];
             my $tHead = $start;
-            # the token whose head is outside the mention is the head of the mention
-            for (my $t = $start; $t <= $lnumber; $t++) {
+
+        # the token whose head is outside the mention is the head of the mention
+            for (my $t = $start ; $t <= $lnumber ; $t++) {
               if ($head[$t] < $inim || $head[$t] > $endm) {
                 $tHead = $t;
                 last;
               }
             }
-            push(@{$entities[$ie]}, [ $start, $lnumber, $tHead ]);
+            push(@{$entities[$ie]}, [$start, $lnumber, $tHead]);
           }
           else {
-            die "Detected the end of a mention [$numberie]($ie) without begin (?,$lnumber)";
+            die
+"Detected the end of a mention [$numberie]($ie) without begin (?,$lnumber)";
           }
           print "+mention (entity $ie): ($start,$lnumber)\n" if ($VERBOSE > 2);
 
@@ -259,7 +288,7 @@ sub GetCoreference
     # verbose
     if ($VERBOSE > 1) {
       print "File $fName:\n";
-      for (my $e = 0; $e < scalar(@entities); $e++) {
+      for (my $e = 0 ; $e < scalar(@entities) ; $e++) {
         print "Entity $e:";
         foreach my $mention (@{$entities[$e]}) {
           print " ($mention->[0],$mention->[1])";
@@ -281,22 +310,21 @@ sub GetFileNames {
   my $file = shift;
   my %hash;
   my $last = 0;
-  open (F, $file) || die "Can not open $file: $!";
+  open(F, $file) || die "Can not open $file: $!";
   while (my $l = <F>) {
     chomp($l);
-    $l =~ s/\r$//; # m$ format jokes
+    $l =~ s/\r$//;    # m$ format jokes
     if ($l =~ /^\#\s*begin document (.*?)$/) {
       my $name = $1;
       $hash{$name} = $last;
     }
     $last = tell(F);
   }
-  close (F);
+  close(F);
   return \%hash;
 }
 
-sub IdentifMentions
-{
+sub IdentifMentions {
   my ($keys, $response, $totals) = @_;
   my @kChains;
   my @kChainsWithSingletonsFromResponse;
@@ -313,7 +341,8 @@ sub IdentifMentions
   foreach my $entity (@$keys) {
     foreach my $mention (@$entity) {
       if (defined($id{"$mention->[0],$mention->[1]"})) {
-        print "Repe: $mention->[0], $mention->[1] ", $id{"$mention->[0],$mention->[1]"}, $idCount, "\n";
+        print "Repe: $mention->[0], $mention->[1] ",
+          $id{"$mention->[0],$mention->[1]"}, $idCount, "\n";
       }
       $id{"$mention->[0],$mention->[1]"} = $idCount;
       $idCount++;
@@ -324,47 +353,36 @@ sub IdentifMentions
   my $exact = 0;
   foreach my $entity (@$response) {
 
-      my $i = 0;
-      my @remove;
+    my $i = 0;
+    my @remove;
 
-      foreach my $mention (@$entity) {
-          if (defined($map{"$mention->[0],$mention->[1]"})) {
-              print "Repeated mention: $mention->[0], $mention->[1] ",
-              $map{"$mention->[0],$mention->[1]"}, $id{"$mention->[0],$mention->[1]"},
-              "\n";
-              push(@remove, $i);
-          }
-          elsif (defined($id{"$mention->[0],$mention->[1]"}) &&
-                 !$assigned[$id{"$mention->[0],$mention->[1]"}]) {
-              $assigned[$id{"$mention->[0],$mention->[1]"}] = 1;
-              $map{"$mention->[0],$mention->[1]"} = $id{"$mention->[0],$mention->[1]"};
-                $exact++;
-          }
-          $i++;
+    foreach my $mention (@$entity) {
+      if (defined($map{"$mention->[0],$mention->[1]"})) {
+        print "Repeated mention: $mention->[0], $mention->[1] ",
+          $map{"$mention->[0],$mention->[1]"},
+          $id{"$mention->[0],$mention->[1]"},
+          "\n";
+        push(@remove, $i);
       }
+      elsif (defined($id{"$mention->[0],$mention->[1]"})
+        && !$assigned[$id{"$mention->[0],$mention->[1]"}])
+      {
+        $assigned[$id{"$mention->[0],$mention->[1]"}] = 1;
+        $map{"$mention->[0],$mention->[1]"} =
+          $id{"$mention->[0],$mention->[1]"};
+        $exact++;
+      }
+      $i++;
+    }
 
-      # Remove repeated mentions in the response
-      foreach my $i (sort { $b <=> $a } (@remove)) {
-          splice(@$entity, $i, 1);
-      }
+    # Remove repeated mentions in the response
+    foreach my $i (sort { $b <=> $a } (@remove)) {
+      splice(@$entity, $i, 1);
+    }
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   # Partial identificaiton: Inside bounds and including the head
   my $part = 0;
-
 
   # Each mention in response not included in keys has a new ID
   my $mresp = 0;
@@ -390,12 +408,12 @@ sub IdentifMentions
   }
 
   if (defined($totals)) {
-    $totals->{recallDen} += scalar(keys(%id));
-    $totals->{recallNum} += $exact;
-    $totals->{precisionDen} += scalar(keys(%map));
-    $totals->{precisionNum} += $exact;
+    $totals->{recallDen}      += scalar(keys(%id));
+    $totals->{recallNum}      += $exact;
+    $totals->{precisionDen}   += scalar(keys(%map));
+    $totals->{precisionNum}   += $exact;
     $totals->{precisionExact} += $exact;
-    $totals->{precisionPart} += $part;
+    $totals->{precisionPart}  += $part;
   }
 
   # The coreference chains arrays are generated again with ID of mentions
@@ -404,15 +422,15 @@ sub IdentifMentions
   foreach my $entity (@$keys) {
     foreach my $mention (@$entity) {
       push(@{$kChainsOrig[$e]}, $id{"$mention->[0],$mention->[1]"});
-      push(@{$kChains[$e]}, $id{"$mention->[0],$mention->[1]"});
+      push(@{$kChains[$e]},     $id{"$mention->[0],$mention->[1]"});
     }
     $e++;
   }
   $e = 0;
   foreach my $entity (@$response) {
     foreach my $mention (@$entity) {
-        push(@{$rChainsOrig[$e]}, $map{"$mention->[0],$mention->[1]"});
-        push(@{$rChains[$e]}, $map{"$mention->[0],$mention->[1]"});
+      push(@{$rChainsOrig[$e]}, $map{"$mention->[0],$mention->[1]"});
+      push(@{$rChains[$e]},     $map{"$mention->[0],$mention->[1]"});
     }
     $e++;
   }
@@ -440,11 +458,11 @@ sub IdentifMentions
   }
 
   @kChainsWithSingletonsFromResponse = @kChains;
-  @rChainsWithoutMentionsNotInKey = [];
+  @rChainsWithoutMentionsNotInKey    = [];
 
   # 2. Discard the detected mentions not included in key resolved as singletons
   my $delsin = 0;
-  
+
   if ($idCount - scalar(keys(%id)) > 0) {
     foreach my $rc (@rChains) {
       if (scalar(@$rc) == 1) {
@@ -456,7 +474,7 @@ sub IdentifMentions
     }
   }
 
-  # 3a. For computing precision: put twinless system mentions in key as singletons
+# 3a. For computing precision: put twinless system mentions in key as singletons
   my $addinv = 0;
 
   if ($idCount - scalar(keys(%id)) > 0) {
@@ -475,45 +493,50 @@ sub IdentifMentions
   # 3b. For computing recall: discard twinless system mentions in response
   my $delsys = 0;
 
-    foreach my $rc (@rChains) {
-      my @temprc;
-      my $i = 0;
+  foreach my $rc (@rChains) {
+    my @temprc;
+    my $i = 0;
 
-      foreach my $m (@$rc) {
-        if (defined($kIndex->{$m})) {
-          push(@temprc, $m);
-          $i++;
-        }
-        else {
-          $delsys++;
-        }
+    foreach my $m (@$rc) {
+      if (defined($kIndex->{$m})) {
+        push(@temprc, $m);
+        $i++;
       }
-
-      if ($i > 0) {
-        push(@rChainsWithoutMentionsNotInKey,\@temprc);
-      }     
-    }
-
-    # We clean the empty chains
-    my @newrc;
-    foreach my $rc (@rChains) {
-      if (scalar(@$rc) > 0) {
-        push(@newrc, $rc);
+      else {
+        $delsys++;
       }
     }
-    @rChains = @newrc;
 
+    if ($i > 0) {
+      push(@rChainsWithoutMentionsNotInKey, \@temprc);
+    }
+  }
 
-  return (\@kChains, \@kChainsWithSingletonsFromResponse, \@rChains, \@rChainsWithoutMentionsNotInKey, \@kChainsOrig, \@rChainsOrig);
+  # We clean the empty chains
+  my @newrc;
+  foreach my $rc (@rChains) {
+    if (scalar(@$rc) > 0) {
+      push(@newrc, $rc);
+    }
+  }
+  @rChains = @newrc;
+
+  return (
+    \@kChains, \@kChainsWithSingletonsFromResponse,
+    \@rChains, \@rChainsWithoutMentionsNotInKey,
+    \@kChainsOrig, \@rChainsOrig
+  );
 }
 
-sub Eval
-{
-  my ($scorer, $keys, $keysPrecision, $response, $responseRecall, $keyChainsOrig, $responseChainsOrig) = @_;
+sub Eval {
+  my ($scorer, $keys, $keysPrecision, $response, $responseRecall,
+    $keyChainsOrig, $responseChainsOrig)
+    = @_;
   $scorer = lc($scorer);
   my ($nr, $dr, $np, $dp);
   if ($scorer eq 'muc') {
-    ($nr, $dr, $np, $dp) = MUCScorer($keys, $keysPrecision, $response, $responseRecall);
+    ($nr, $dr, $np, $dp) =
+      MUCScorer($keys, $keysPrecision, $response, $responseRecall);
   }
   elsif ($scorer eq 'bcub') {
     ($nr, $dr, $np, $dp) = BCUBED($keyChainsOrig, $responseChainsOrig);
@@ -531,12 +554,11 @@ sub Eval
 }
 
 # Indexes an array of arrays, in order to easily know the position of an element
-sub Indexa
-{
+sub Indexa {
   my ($arrays) = @_;
   my %index;
 
-  for (my $i = 0; $i < @$arrays; $i++) {
+  for (my $i = 0 ; $i < @$arrays ; $i++) {
     foreach my $e (@{$arrays->[$i]}) {
       $index{$e} = $i;
     }
@@ -545,13 +567,11 @@ sub Indexa
 }
 
 # Consider the "links" within every coreference chain. For example,
-# chain A-B-C-D has 3 links: A-B, B-C and C-D. 
-# Recall: num correct links / num expected links. 
+# chain A-B-C-D has 3 links: A-B, B-C and C-D.
+# Recall: num correct links / num expected links.
 # Precision: num correct links / num output links
 
-
-sub MUCScorer
-{
+sub MUCScorer {
   my ($keys, $keysPrecision, $response, $responseRecall) = @_;
 
   my $kIndex = Indexa($keys);
@@ -560,13 +580,16 @@ sub MUCScorer
   my $correct = 0;
   foreach my $rEntity (@$response) {
     next if (!defined($rEntity));
+
     # for each possible pair
-    for (my $i = 0; $i < @$rEntity; $i++) {
+    for (my $i = 0 ; $i < @$rEntity ; $i++) {
       my $id_i = $rEntity->[$i];
-      for (my $j = $i+1; $j < @$rEntity; $j++) {
+      for (my $j = $i + 1 ; $j < @$rEntity ; $j++) {
         my $id_j = $rEntity->[$j];
-        if (defined($kIndex->{$id_i}) && defined($kIndex->{$id_j}) &&
-          $kIndex->{$id_i} == $kIndex->{$id_j}) {
+        if ( defined($kIndex->{$id_i})
+          && defined($kIndex->{$id_j})
+          && $kIndex->{$id_i} == $kIndex->{$id_j})
+        {
           $correct++;
           last;
         }
@@ -594,20 +617,19 @@ sub MUCScorer
 
 # Compute precision for every mention in the response, and compute
 # recall for every mention in the keys
-sub BCUBED
-{
+sub BCUBED {
   my ($keys, $response) = @_;
   my $kIndex = Indexa($keys);
   my $rIndex = Indexa($response);
-  my $acumP = 0;
-  my $acumR = 0;
+  my $acumP  = 0;
+  my $acumR  = 0;
   foreach my $rChain (@$response) {
     foreach my $m (@$rChain) {
       my $kChain = (defined($kIndex->{$m})) ? $keys->[$kIndex->{$m}] : [];
-      my $ci = 0;
-      my $ri = scalar(@$rChain);
-      my $ki = scalar(@$kChain);
-      
+      my $ci     = 0;
+      my $ri     = scalar(@$rChain);
+      my $ki     = scalar(@$kChain);
+
       # common mentions in rChain and kChain => Ci
       foreach my $mr (@$rChain) {
         foreach my $mk (@$kChain) {
@@ -617,43 +639,43 @@ sub BCUBED
           }
         }
       }
-      
+
       $acumP += $ci / $ri if ($ri);
       $acumR += $ci / $ki if ($ki);
     }
   }
-  
+
   # Mentions in key
   my $keymentions = 0;
   foreach my $kEntity (@$keys) {
     $keymentions += scalar(@$kEntity);
   }
-  
+
   # Mentions in response
   my $resmentions = 0;
   foreach my $rEntity (@$response) {
     $resmentions += scalar(@$rEntity);
   }
-  
+
   ShowRPF($acumR, $keymentions, $acumP, $resmentions) if ($VERBOSE);
-  return($acumR, $keymentions, $acumP, $resmentions);
+  return ($acumR, $keymentions, $acumP, $resmentions);
 }
 
 # type = 0: Entity-based
 # type = 1: Mention-based
-sub CEAF
-{
+sub CEAF {
   my ($keys, $response, $type) = @_;
-  
+
   my @sim;
-  for (my $i = 0; $i < scalar(@$keys); $i++) {
-    for (my $j = 0; $j < scalar(@$response); $j++) {
+  for (my $i = 0 ; $i < scalar(@$keys) ; $i++) {
+    for (my $j = 0 ; $j < scalar(@$response) ; $j++) {
       if (defined($keys->[$i]) && defined($response->[$j])) {
-        if ($type == 0) { # entity-based
+        if ($type == 0) {    # entity-based
           $sim[$i][$j] = 1 - SIMEntityBased($keys->[$i], $response->[$j]);
+
           # 1 - X => the library searches minima not maxima
         }
-        elsif ($type == 1) { # mention-based
+        elsif ($type == 1) {    # mention-based
           $sim[$i][$j] = 1 - SIMMentionBased($keys->[$i], $response->[$j]);
         }
       }
@@ -661,23 +683,24 @@ sub CEAF
         $sim[$i][$j] = 1;
       }
     }
-    
+
     # fill the matrix when response chains are less than key ones
-    for (my $j = scalar(@$response); $j < scalar(@$keys); $j++) {
+    for (my $j = scalar(@$response) ; $j < scalar(@$keys) ; $j++) {
       $sim[$i][$j] = 1;
     }
+
     #$denrec += SIMEntityBased($kChain->[$i], $kChain->[$i]);
   }
-  
+
   my @out;
-  
+
   # Munkres algorithm
   assign(\@sim, \@out);
-  
+
   my $numerador = 0;
-  my $denpre = 0;
-  my $denrec = 0;
-  
+  my $denpre    = 0;
+  my $denrec    = 0;
+
   # entity-based
   if ($type == 0) {
     foreach my $c (@$response) {
@@ -687,6 +710,7 @@ sub CEAF
       $denrec++ if (defined($c) && scalar(@$c) > 0);
     }
   }
+
   # mention-based
   elsif ($type == 1) {
     foreach my $c (@$response) {
@@ -696,20 +720,17 @@ sub CEAF
       $denrec += scalar(@$c) if (defined($c));
     }
   }
-  
-  for (my $i = 0; $i < scalar(@$keys); $i++) {
+
+  for (my $i = 0 ; $i < scalar(@$keys) ; $i++) {
     $numerador += 1 - $sim[$i][$out[$i]];
   }
-  
+
   ShowRPF($numerador, $denrec, $numerador, $denpre) if ($VERBOSE);
-  
+
   return ($numerador, $denrec, $numerador, $denpre);
 }
 
-
-
-sub SIMEntityBased
-{
+sub SIMEntityBased {
   my ($a, $b) = @_;
   my $intersection = 0;
 
@@ -734,8 +755,7 @@ sub SIMEntityBased
   return $r;
 }
 
-sub SIMMentionBased
-{
+sub SIMMentionBased {
   my ($a, $b) = @_;
   my $intersection = 0;
 
@@ -754,13 +774,11 @@ sub SIMMentionBased
   return $intersection;
 }
 
-
-sub ShowRPF
-{
+sub ShowRPF {
   my ($numrec, $denrec, $numpre, $denpre, $f1) = @_;
 
   my $precisio = $denpre ? $numpre / $denpre : 0;
-  my $recall = $denrec ? $numrec / $denrec : 0;
+  my $recall   = $denrec ? $numrec / $denrec : 0;
   if (!defined($f1)) {
     $f1 = 0;
     if ($recall + $precisio) {
@@ -768,10 +786,519 @@ sub ShowRPF
     }
   }
 
-  print "Recall: ($numrec / $denrec) " . int($recall*10000)/100 . '%';
-  print "\tPrecision: ($numpre / $denpre) " . int($precisio*10000)/100 . '%';
-  print "\tF1: " . int($f1*10000)/100 . "\%\n";
-  print "--------------------------------------------------------------------------\n";
+  print "Recall: ($numrec / $denrec) " . int($recall * 10000) / 100 . '%';
+  print "\tPrecision: ($numpre / $denpre) "
+    . int($precisio * 10000) / 100 . '%';
+  print "\tF1: " . int($f1 * 10000) / 100 . "\%\n";
+  print
+"--------------------------------------------------------------------------\n";
+}
+
+# NEW
+sub ScoreBLANC {
+  my ($kFile, $rFile, $name) = @_;
+  my ($acumNRa, $acumDRa, $acumNPa, $acumDPa) = (0, 0, 0, 0);
+  my ($acumNRr, $acumDRr, $acumNPr, $acumDPr) = (0, 0, 0, 0);
+  my %idenTotals =
+    (recallDen => 0, recallNum => 0, precisionDen => 0, precisionNum => 0);
+
+  if (defined($name) && $name ne 'none') {
+    print "$name:\n" if ($VERBOSE);
+    my $keys     = GetCoreference($kFile, $KEY_COLUMN,      $name);
+    my $response = GetCoreference($rFile, $RESPONSE_COLUMN, $name);
+    my (
+      $keyChains, $keyChainsWithSingletonsFromResponse,
+      $responseChains, $responseChainsWithoutMentionsNotInKey,
+      $keyChainsOrig, $responseChainsOrig
+    ) = IdentifMentions($keys, $response, \%idenTotals);
+    (
+      $acumNRa, $acumDRa, $acumNPa, $acumDPa,
+      $acumNRr, $acumDRr, $acumNPr, $acumDPr
+    ) = BLANC_Internal($keyChainsOrig, $responseChainsOrig);
+  }
+  else {
+    my $kIndexNames = GetFileNames($kFile);
+    my $rIndexNames = GetFileNames($rFile);
+
+    $VERBOSE = 0 if ($name eq 'none');
+    foreach my $iname (keys(%{$kIndexNames})) {
+      my $keys =
+        GetCoreference($kFile, $KEY_COLUMN, $iname, $kIndexNames->{$iname});
+      my $response = GetCoreference($rFile, $RESPONSE_COLUMN, $iname,
+        $rIndexNames->{$iname});
+
+      print "$name:\n" if ($VERBOSE);
+      my (
+        $keyChains,      $keyChainsWithSingletonsFromResponse,
+        $responseChains, $responseChainsWithoutMentionsNotInKey,
+        $keyChainsOrig,  $responseChainsOrig
+      ) = IdentifMentions($keys, $response, \%idenTotals);
+      my ($nra, $dra, $npa, $dpa, $nrr, $drr, $npr, $dpr) =
+        BLANC_Internal($keyChainsOrig, $responseChainsOrig);
+
+      $acumNRa += $nra;
+      $acumDRa += $dra;
+      $acumNPa += $npa;
+      $acumDPa += $dpa;
+      $acumNRr += $nrr;
+      $acumDRr += $drr;
+      $acumNPr += $npr;
+      $acumDPr += $dpr;
+    }
+  }
+
+  if ($VERBOSE || $name eq 'none') {
+    print "\n====== TOTALS =======\n";
+    print "Identification of Mentions: ";
+    ShowRPF(
+      $idenTotals{recallNum},    $idenTotals{recallDen},
+      $idenTotals{precisionNum}, $idenTotals{precisionDen}
+    );
+    print "\nCoreference:\n";
+    print "Coreference links: ";
+    ShowRPF($acumNRa, $acumDRa, $acumNPa, $acumDPa);
+    print "Non-coreference links: ";
+    ShowRPF($acumNRr, $acumDRr, $acumNPr, $acumDPr);
+    print "BLANC: ";
+
+    my $Ra = ($acumDRa) ? $acumNRa / $acumDRa : -1;
+    my $Rr = ($acumDRr) ? $acumNRr / $acumDRr : -1;
+    my $Pa = ($acumDPa) ? $acumNPa / $acumDPa : 0;
+    my $Pr = ($acumDPr) ? $acumNPr / $acumDPr : 0;
+
+    my $R = ($Ra + $Rr) / 2;
+    my $P = ($Pa + $Pr) / 2;
+
+    my $Fa = ($Pa + $Ra) ? 2 * $Pa * $Ra / ($Pa + $Ra) : 0;
+    my $Fr = ($Pr + $Rr) ? 2 * $Pr * $Rr / ($Pr + $Rr) : 0;
+
+    my $f1 = ($Fa + $Fr) / 2;
+
+    if ($Ra == -1 && $Rr == -1) {
+      $R  = 0;
+      $P  = 0;
+      $f1 = 0;
+    }
+    elsif ($Ra == -1) {
+      $R  = $Rr;
+      $P  = $Pr;
+      $f1 = $Fr;
+    }
+    elsif ($Rr == -1) {
+      $R  = $Ra;
+      $P  = $Pa;
+      $f1 = $Fa;
+    }
+
+    ShowRPF($R, 1, $P, 1, $f1);
+  }
+  return (
+    $acumNRa, $acumDRa, $acumNPa, $acumDPa,
+    $acumNRr, $acumDRr, $acumNPr, $acumDPr
+  );
+}
+
+sub cartesian {
+  my @C = map { [$_] } @{shift @_};
+
+  foreach (@_) {
+    my @A = @$_;
+
+    @C = map {
+      my $n = $_;
+      map { [$n, @$_] } @C
+    } @A;
+  }
+
+  return @C;
+}
+
+sub BLANC_Internal {
+  my ($keys, $response) = @_;
+  my ($ga, $gr, $ba, $br) = (0, 0, 0, 0);
+  my $key_coreference_links          = {};
+  my $key_non_coreference_links      = {};
+  my $response_coreference_links     = {};
+  my $response_non_coreference_links = {};
+
+  print "list containing list of chains in key:\n" if ($VERBOSE > 2);
+  print Dumper $keys if ($VERBOSE > 2);
+
+  print "each key chain printed individually:\n" if ($VERBOSE > 2);
+
+  if ($VERBOSE > 2) {
+    foreach my $z (@$keys) {
+      print Dumper $z;
+    }
+  }
+
+  print "list containing list of chains in response:\n" if ($VERBOSE > 2);
+  print Dumper $response if ($VERBOSE > 2);
+
+  print "each response chain printed individually:\n" if ($VERBOSE > 2);
+
+  if ($VERBOSE > 2) {
+    foreach my $z (@$response) {
+      print Dumper $z;
+    }
+  }
+
+  print
+"---------------------------------------------------------------------------------"
+    . "\n"
+    if ($VERBOSE > 2);
+
+  print "combinations of links for each chain in the key:\n" if ($VERBOSE > 2);
+  for my $kkk (@$keys) {
+    my $ccombinat = Math::Combinatorics->new(
+      count => 2,
+      data  => [@$kkk],
+    );
+
+    while (my @zcombo = $ccombinat->next_combination) {
+      print Dumper [@zcombo] if ($VERBOSE > 2);
+      my @zzcombo = sort { $a <=> $b } @zcombo;
+
+      $key_coreference_links->{$zzcombo[0] . "-" . $zzcombo[1]} = 1;
+    }
+
+    print
+"................................................................................\n"
+      if ($VERBOSE > 2);
+  }
+
+  print Dumper $key_coreference_links if ($VERBOSE > 2);
+  print
+"********************************************************************************\n"
+    if ($VERBOSE > 2);
+
+  print
+"---------------------------------------------------------------------------------"
+    . "\n"
+    if ($VERBOSE > 2);
+  print "combinations of links for each chain in the response:\n"
+    if ($VERBOSE > 2);
+  for my $rrr (@$response) {
+    my $ccombinat = Math::Combinatorics->new(
+      count => 2,
+      data  => [@$rrr],
+    );
+
+    while (my @zcombo = $ccombinat->next_combination) {
+      print Dumper [@zcombo] if ($VERBOSE > 2);
+      my @zzcombo = sort { $a <=> $b } @zcombo;
+
+      $response_coreference_links->{$zzcombo[0] . "-" . $zzcombo[1]} = 1;
+    }
+
+    print
+"................................................................................\n"
+      if ($VERBOSE > 2);
+  }
+
+  print Dumper $response_coreference_links if ($VERBOSE > 2);
+  print
+"********************************************************************************\n"
+    if ($VERBOSE > 2);
+
+  my $number_chains_in_key = @$keys;
+  print "number chains in key: " . $number_chains_in_key . "\n"
+    if ($VERBOSE > 2);
+
+  my @s  = (0 .. $number_chains_in_key - 1);
+  my $ss = join(' ', @s);
+  my @n  = split(' ', $ss);
+
+  my $combinat = Math::Combinatorics->new(
+    count => 2,
+    data  => [@n],
+  );
+
+  print "combinations of 2 from: " . join(" ", @n) . "\n" if ($VERBOSE > 2);
+  print "------------------------" . ("--" x scalar(@n)) . "\n"
+    if ($VERBOSE > 2);
+
+  while (my @combo = $combinat->next_combination) {
+
+    my @kcombo = ();
+    foreach my $comboo (@combo) {
+      push(@kcombo, @$keys[$comboo]);
+    }
+
+    my $lkcombo = @kcombo;
+    print "length: " . $lkcombo . "\n" if ($VERBOSE > 2);
+    print "kcombo:\n"                  if ($VERBOSE > 2);
+    print "+++++\n"                    if ($VERBOSE > 2);
+    print Dumper [@kcombo] if ($VERBOSE > 2);
+    my @kccar = cartesian($kcombo[0], $kcombo[1]);
+
+    foreach my $x (@kccar) {
+      print "--->>>>>>>>>>>>\n" if ($VERBOSE > 2);
+      print Dumper $x if ($VERBOSE > 2);
+      my @y = sort { $a <=> $b } @$x;
+      print Dumper [@y] if ($VERBOSE > 2);
+      $key_non_coreference_links->{@y[0] . "-" . @y[1]} = 1;
+    }
+
+    print Dumper $key_non_coreference_links if ($VERBOSE > 2);
+    print "" . "\n" if ($VERBOSE > 2);
+
+    print ".....\n" if ($VERBOSE > 2);
+
+    print "\n" if ($VERBOSE > 2);
+  }
+
+  print "\n" if ($VERBOSE > 2);
+  my $number_chains_in_response = @$response;
+  print "number chains in response: " . $number_chains_in_response . "\n"
+    if ($VERBOSE > 2);
+
+  my @s  = (0 .. $number_chains_in_response - 1);
+  my $ss = join(' ', @s);
+  my @n  = split(' ', $ss);
+
+  my $combinat = Math::Combinatorics->new(
+    count => 2,
+    data  => [@n],
+  );
+
+  print "combinations of 2 from: " . join(" ", @n) . "\n" if ($VERBOSE > 2);
+  print "------------------------" . ("--" x scalar(@n)) . "\n"
+    if ($VERBOSE > 2);
+
+  while (my @combo = $combinat->next_combination) {
+    my @kcombo = ();
+    foreach my $comboo (@combo) {
+      push(@kcombo, @$response[$comboo]);
+    }
+
+    my $lkcombo = @kcombo;
+    print "length: " . $lkcombo . "\n" if ($VERBOSE > 2);
+    print "kcombo:\n"                  if ($VERBOSE > 2);
+    print "+++++\n"                    if ($VERBOSE > 2);
+    print Dumper [@kcombo] if ($VERBOSE > 2);
+    my @kccar = cartesian($kcombo[0], $kcombo[1]);
+
+    foreach my $x (@kccar) {
+      print "--->>>>>>>>>>>>\n" if ($VERBOSE > 2);
+      print Dumper $x if ($VERBOSE > 2);
+      my @y = sort { $a <=> $b } @$x;
+      print Dumper [@y] if ($VERBOSE > 2);
+      $response_non_coreference_links->{@y[0] . "-" . @y[1]} = 1;
+    }
+
+    print Dumper $response_non_coreference_links if ($VERBOSE > 2);
+    print "" . "\n" if ($VERBOSE > 2);
+
+    print ".....\n" if ($VERBOSE > 2);
+    print "\n"      if ($VERBOSE > 2);
+  }
+
+  print "\n" if ($VERBOSE > 2);
+
+  print
+"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n"
+    if ($VERBOSE > 2);
+  print Dumper $key_coreference_links          if ($VERBOSE > 2);
+  print Dumper $response_coreference_links     if ($VERBOSE > 2);
+  print Dumper $key_non_coreference_links      if ($VERBOSE > 2);
+  print Dumper $response_non_coreference_links if ($VERBOSE > 2);
+  print
+"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n"
+    if ($VERBOSE > 2);
+
+  my @union_cl = my @isect_cl = ();
+  my %union_cl = my %isect_cl = ();
+
+  my @kcl = keys %$key_coreference_links;
+  my @rcl = keys %$response_coreference_links;
+
+  print Dumper @kcl if ($VERBOSE > 2);
+  print
+"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+    if ($VERBOSE > 2);
+  print Dumper @rcl if ($VERBOSE > 2);
+  print
+"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+    if ($VERBOSE > 2);
+
+  foreach my $e (@kcl, @rcl) { $union_cl{$e}++ && $isect_cl{$e}++ }
+
+  @union_cl = keys %union_cl;
+  @isect_cl = keys %isect_cl;
+
+  print Dumper @isect_cl if ($VERBOSE > 2);
+  print
+"********************************************************************************\n"
+    if ($VERBOSE > 2);
+
+  my @union_ncl = my @isect_ncl = ();
+  my %union_ncl = my %isect_ncl = ();
+
+  my @kncl = keys %$key_non_coreference_links;
+  my @rncl = keys %$response_non_coreference_links;
+
+  print Dumper @kncl if ($VERBOSE > 2);
+  print
+"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+    if ($VERBOSE > 2);
+  print Dumper @rncl if ($VERBOSE > 2);
+  print
+"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+    if ($VERBOSE > 2);
+
+  foreach my $e (@kncl, @rncl) { $union_ncl{$e}++ && $isect_ncl{$e}++ }
+
+  @union_ncl = keys %union_ncl;
+  @isect_ncl = keys %isect_ncl;
+
+  print Dumper @isect_ncl if ($VERBOSE > 2);
+  print
+"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+    if ($VERBOSE > 2);
+
+  my $num_isect_cl = @isect_cl;
+  print
+"    number of links in the intersection of key and response coreference links: "
+    . $num_isect_cl . "\n"
+    if ($VERBOSE > 2);
+
+  my $num_isect_ncl = @isect_ncl;
+  print
+"number of links in the intersection of key and response non-coreference links: "
+    . $num_isect_ncl . "\n"
+    if ($VERBOSE > 2);
+
+  my $num_key_coreference_links = keys %$key_coreference_links;
+  print "number of key coreference links: " . $num_key_coreference_links . "\n"
+    if ($VERBOSE > 2);
+
+  my $num_response_coreference_links = keys %$response_coreference_links;
+  print "number of response coreference links: "
+    . $num_response_coreference_links . "\n"
+    if ($VERBOSE > 2);
+
+  my $num_key_non_coreference_links = keys %$key_non_coreference_links;
+  print "number of key non-coreference links: "
+    . $num_key_non_coreference_links . "\n"
+    if ($VERBOSE > 2);
+
+  my $num_response_non_coreference_links =
+    keys %$response_non_coreference_links;
+  print "number of response non-coreference links: "
+    . $num_response_non_coreference_links . "\n"
+    if ($VERBOSE > 2);
+
+  my ($r_blanc, $p_blanc, $f_blanc) = ComputeBLANCFromCounts(
+    $num_isect_cl,                   $num_key_coreference_links,
+    $num_response_coreference_links, $num_isect_ncl,
+    $num_key_non_coreference_links,  $num_response_non_coreference_links
+  );
+
+  print "   blanc recall: " . $r_blanc . "\n" if ($VERBOSE > 2);
+  print "blanc precision: " . $p_blanc . "\n" if ($VERBOSE > 2);
+  print "  blanc score: " . $f_blanc . "\n"   if ($VERBOSE > 2);
+  print
+">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
+    if ($VERBOSE > 2);
+
+  return (
+    $num_isect_cl,  $num_key_coreference_links,
+    $num_isect_cl,  $num_response_coreference_links,
+    $num_isect_ncl, $num_key_non_coreference_links,
+    $num_isect_ncl, $num_response_non_coreference_links
+  );
+}
+
+################################################################################
+# Compute BLANC recall, precision and F-measure from counts.
+# Parameters:
+#    (#correct_coref_links, #key_coref_links, #response_coref_links,
+#     #correct_noncoref_links, #key_noncoref_links, #response_noncoref_links).
+# Returns: (recall, precision, F-measure).
+################################################################################
+sub ComputeBLANCFromCounts {
+  my (
+    $num_isect_cl,                   $num_key_coreference_links,
+    $num_response_coreference_links, $num_isect_ncl,
+    $num_key_non_coreference_links,  $num_response_non_coreference_links
+  ) = @_;
+
+  my $kcl_recall =
+    ($num_key_coreference_links == 0)
+    ? 0
+    : ($num_isect_cl / $num_key_coreference_links);
+  my $kcl_precision =
+    ($num_response_coreference_links == 0)
+    ? 0
+    : ($num_isect_cl / $num_response_coreference_links);
+
+  print
+"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n"
+    if ($VERBOSE > 2);
+  print "       coreference recall: " . $kcl_recall . "\n"    if ($VERBOSE > 2);
+  print "    coreference precision: " . $kcl_precision . "\n" if ($VERBOSE > 2);
+
+  my $fcl =
+    ($kcl_recall + $kcl_precision == 0)
+    ? 0
+    : (2 * $kcl_recall * $kcl_precision / ($kcl_recall + $kcl_precision));
+  print "      coreference f-score: " . $fcl . "\n" if ($VERBOSE > 2);
+
+  my $kncl_recall =
+    ($num_key_non_coreference_links == 0)
+    ? 0
+    : ($num_isect_ncl / $num_key_non_coreference_links);
+  my $kncl_precision =
+    ($num_response_non_coreference_links == 0)
+    ? 0
+    : ($num_isect_ncl / $num_response_non_coreference_links);
+
+  print
+"--------------------------------------------------------------------------------\n"
+    if ($VERBOSE > 2);
+  print "   non-coreference recall: " . $kncl_recall . "\n" if ($VERBOSE > 2);
+  print "non-coreference precision: " . $kncl_precision . "\n"
+    if ($VERBOSE > 2);
+
+  my $fncl =
+    ($kncl_recall + $kncl_precision == 0)
+    ? 0
+    : (2 * $kncl_recall * $kncl_precision / ($kncl_recall + $kncl_precision));
+  print "  non-coreference f-score: " . $fncl . "\n" if ($VERBOSE > 2);
+  print
+"--------------------------------------------------------------------------------\n"
+    if ($VERBOSE > 2);
+
+  my $r_blanc = -1;
+  my $p_blanc = -1;
+  my $f_blanc = -1;
+
+  if ($num_key_coreference_links == 0 && $num_key_non_coreference_links == 0) {
+    $r_blanc = 0;
+    $p_blanc = 0;
+    $f_blanc = 0;
+  }
+  elsif ($num_key_coreference_links == 0 || $num_key_non_coreference_links == 0)
+  {
+    if ($num_key_coreference_links == 0) {
+      $r_blanc = $kncl_recall;
+      $p_blanc = $kncl_precision;
+      $f_blanc = $fncl;
+    }
+    elsif ($num_key_non_coreference_links == 0) {
+      $r_blanc = $kcl_recall;
+      $p_blanc = $kcl_precision;
+      $f_blanc = $fcl;
+    }
+  }
+  else {
+    $r_blanc = ($kcl_recall + $kncl_recall) / 2;
+    $p_blanc = ($kcl_precision + $kncl_precision) / 2;
+    $f_blanc = ($fcl + $fncl) / 2;
+  }
+
+  return ($r_blanc, $p_blanc, $f_blanc);
 }
 
 1;
