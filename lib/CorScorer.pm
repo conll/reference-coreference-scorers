@@ -330,7 +330,7 @@ sub GetFileNames {
 }
 
 sub IdentifMentions {
-  my ($keys, $response, $totals) = @_;
+	my ($keys, $response, $totals) = @_;
   my @kChains;
   my @kChainsWithSingletonsFromResponse;
   my @rChains;
@@ -346,7 +346,7 @@ sub IdentifMentions {
   foreach my $entity (@$keys) {
     foreach my $mention (@$entity) {
       if (defined($id{"$mention->[0],$mention->[1]"})) {
-        print "Repe: $mention->[0], $mention->[1] ",
+        print "Repeated mention: $mention->[0], $mention->[1] ",
           $id{"$mention->[0],$mention->[1]"}, $idCount, "\n";
       }
       $id{"$mention->[0],$mention->[1]"} = $idCount;
@@ -356,11 +356,12 @@ sub IdentifMentions {
 
   # correct identification: Exact bound limits
   my $exact = 0;
+	my $repeats = 0;
   foreach my $entity (@$response) {
 
     my $i = 0;
     my @remove;
-
+		
     foreach my $mention (@$entity) {
       if (defined($map{"$mention->[0],$mention->[1]"})) {
         print "Repeated mention: $mention->[0], $mention->[1] ",
@@ -368,6 +369,14 @@ sub IdentifMentions {
           $id{"$mention->[0],$mention->[1]"},
           "\n";
         push(@remove, $i);
+				$repeats++;
+
+				if ($repeats > 10)
+				{
+						print STDERR "Found too many repeats (> 10) in the response, so refusing to score. Please fix the output.\n";
+						exit 1;
+				}
+
       }
       elsif (defined($id{"$mention->[0],$mention->[1]"})
         && !$assigned[$id{"$mention->[0],$mention->[1]"}])
@@ -385,6 +394,26 @@ sub IdentifMentions {
       splice(@$entity, $i, 1);
     }
   }
+
+
+	# now, lets remove any empty elements in the response array after removing
+	# potential repeats
+	my @another_remove = ();
+	my $ii;
+
+	foreach my $eentity (@$response)
+	{
+			if ( @$eentity == 0)
+			{
+					push(@another_remove, $ii);
+			}
+			$ii++;
+	}
+
+	foreach my $iii (sort { $b <=> $a } (@another_remove)) {
+      splice(@$response, $iii, 1);
+	}
+
 
   # Partial identificaiton: Inside bounds and including the head
   my $part = 0;
