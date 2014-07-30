@@ -87,6 +87,7 @@ my $KEY_COLUMN      = -1;
 # F1 = 2 * Recall * Precision / (Recall + Precision)
 sub Score {
   my ($metric, $kFile, $rFile, $name) = @_;
+	our $repeated_mentions = 0;
 
   if (lc($metric) eq 'blanc') {
     return ScoreBLANC($kFile, $rFile, $name);
@@ -346,7 +347,7 @@ sub IdentifMentions {
   foreach my $entity (@$keys) {
     foreach my $mention (@$entity) {
       if (defined($id{"$mention->[0],$mention->[1]"})) {
-        print "Repeated mention: $mention->[0], $mention->[1] ",
+        print "Repeated mention in the key: $mention->[0], $mention->[1] ",
           $id{"$mention->[0],$mention->[1]"}, $idCount, "\n";
       }
       $id{"$mention->[0],$mention->[1]"} = $idCount;
@@ -356,7 +357,6 @@ sub IdentifMentions {
 
   # correct identification: Exact bound limits
   my $exact = 0;
-	my $repeats = 0;
   foreach my $entity (@$response) {
 
     my $i = 0;
@@ -364,16 +364,16 @@ sub IdentifMentions {
 		
     foreach my $mention (@$entity) {
       if (defined($map{"$mention->[0],$mention->[1]"})) {
-        print "Repeated mention: $mention->[0], $mention->[1] ",
+        print "Repeated mention in the response: $mention->[0], $mention->[1] ",
           $map{"$mention->[0],$mention->[1]"},
           $id{"$mention->[0],$mention->[1]"},
           "\n";
         push(@remove, $i);
-				$repeats++;
+				$main::repeated_mentions++;
 
-				if ($repeats > 10)
+				if ($main::repeated_mentions > 10)
 				{
-						print STDERR "Found too many repeats (> 10) in the response, so refusing to score. Please fix the output.\n";
+						print STDERR "Found too many repeated mentions (> 10) in the response, so refusing to score. Please fix the output.\n";
 						exit 1;
 				}
 
