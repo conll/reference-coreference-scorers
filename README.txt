@@ -4,8 +4,12 @@ NAME
 
 
 VERSION
-   v8.0 -- reference implementations of MUC, B-cubed, CEAF and BLANC metrics.
+   v8.01 -- reference implementations of MUC, B-cubed, CEAF and BLANC metrics.
 
+
+CHANGES SINCE v8.0
+   - fixed a bug that crashed the BLANC scorer when a duplicate singleton
+     mention was present in the response.
 
 INSTALLATION
    Requirements:
