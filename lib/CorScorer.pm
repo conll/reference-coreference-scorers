@@ -33,10 +33,17 @@ use Data::Dumper;
 use Math::Combinatorics;
 use Cwd;
 
-our $VERSION = '8.0';
+our $VERSION = '8.01';
 print "version: " . $VERSION . " " . Cwd::realpath(__FILE__) . "\n";
 
 ##
+# 8.01 fixed a bug that crashed the the BLANC scoring when duplicate
+#      (potentially singleton) mentions were present in the
+#      response. as part of the fix, wee will allow a maximum of 10
+#      duplicate mentions in response, but if there are more, than it
+#      is a sign of a systematic error/manipulation and we will refuse
+#      to score that run.
+
 #  8.0 added code to compute the BLANC metric (generalized for both gold
 #      and system mentions (Luo et al., 2014)
 #
@@ -226,6 +233,7 @@ sub GetCoreference {
     my @sentId;
     while (my $l = <F>) {
       chomp($l);
+			$l =~ s/^\s+$//;
       next if ($l eq '');
       if ($l =~ /\#\s*end document/) {
         foreach my $h (@half) {
