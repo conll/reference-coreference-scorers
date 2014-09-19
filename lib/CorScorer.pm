@@ -33,10 +33,17 @@ use Data::Dumper;
 use Math::Combinatorics;
 use Cwd;
 
-our $VERSION = '8.0';
+our $VERSION = '8.01';
 print "version: " . $VERSION . " " . Cwd::realpath(__FILE__) . "\n";
 
 ##
+# 8.01 fixed a bug that crashed the the BLANC scoring when duplicate
+#      (potentially singleton) mentions were present in the
+#      response. as part of the fix, wee will allow a maximum of 10
+#      duplicate mentions in response, but if there are more, than it
+#      is a sign of a systematic error/manipulation and we will refuse
+#      to score that run.
+
 #  8.0 added code to compute the BLANC metric (generalized for both gold
 #      and system mentions (Luo et al., 2014)
 #
@@ -62,6 +69,7 @@ print "version: " . $VERSION . " " . Cwd::realpath(__FILE__) . "\n";
 
 # global variables
 my $VERBOSE         = 2;
+#my $HEAD_COLUMN     = -2;
 my $HEAD_COLUMN     = 8;
 my $RESPONSE_COLUMN = -1;
 my $KEY_COLUMN      = -1;
@@ -226,6 +234,7 @@ sub GetCoreference {
     my @sentId;
     while (my $l = <F>) {
       chomp($l);
+			$l =~ s/^\s+$//;
       next if ($l eq '');
       if ($l =~ /\#\s*end document/) {
         foreach my $h (@half) {
@@ -235,11 +244,20 @@ sub GetCoreference {
         }
         last;
       }
-      my @columns = split(/\t/, $l);
+      my @columns = split(/\s+/, $l);
+
+      #print Dumper @columns;
+      #print "\n";
+
       my $cInfo = $columns[$column];
       push(@head,   $columns[$HEAD_COLUMN]);
+      #push(@sentId, $columns[0] + 1);
       push(@sentId, $columns[0]);
       if ($cInfo ne '_') {
+			#if ($cInfo ne '-') {
+        #print "came here\n";
+        #print Dumper @sentId;
+        #print "\n";
 
         #discard double antecedent
         while ($cInfo =~ s/\((\d+\+\d)\)//) {
@@ -278,14 +296,13 @@ sub GetCoreference {
                 last;
               }
             }
+            print "[$start, $lnumber, $tHead]\n" if ($VERBOSE > 2);
             push(@{$entities[$ie]}, [$start, $lnumber, $tHead]);
           }
           else {
-            die
-"Detected the end of a mention [$numberie]($ie) without begin (?,$lnumber)";
+            die "Detected the end of a mention [$numberie]($ie) without begin (?,$lnumber)";
           }
           print "+mention (entity $ie): ($start,$lnumber)\n" if ($VERBOSE > 2);
-
         }
       }
       $lnumber++;
@@ -361,7 +378,7 @@ sub IdentifMentions {
 
     my $i = 0;
     my @remove;
-		
+
     foreach my $mention (@$entity) {
       if (defined($map{"$mention->[0],$mention->[1]"})) {
         print "Repeated mention in the response: $mention->[0], $mention->[1] ",
@@ -371,9 +388,9 @@ sub IdentifMentions {
         push(@remove, $i);
 				$main::repeated_mentions++;
 
-				if ($main::repeated_mentions > 10)
+				if ($main::repeated_mentions > 100)
 				{
-						print STDERR "Found too many repeated mentions (> 10) in the response, so refusing to score. Please fix the output.\n";
+						print STDERR "Found too many repeated mentions (> 100) in the response, so refusing to score. Please fix the output.\n";
 						exit 1;
 				}
 
@@ -417,9 +434,42 @@ sub IdentifMentions {
 
   # Partial identificaiton: Inside bounds and including the head
   my $part = 0;
+	
+	# this block attempts to map mentions that don't exactly align with
+	# the key mentions to the key mentions that share the same head and
+	# are not already exactly aligned with another response mention
+	
+	# this can be borrowed from
+	# orchestra@~/research/nlp/corpora/semeval/coreference/task01.trial.v2.0/software/scorer-v1.0/lib/AnCora.pm
+	# pasted below
+
+  foreach my $entity (@$response) {
+    foreach my $mention (@$entity) {
+      my $ini = $mention->[0];
+      my $end = $mention->[1];
+      my $head = $mention->[2];
+      next if (defined($map{"$ini,$end"})); # if there is already a mapping defined for this mention span then go to next mention
+      foreach my $ent (@$keys) {
+        foreach my $m (@$ent) {
+          next if ($assigned[$id{"$m->[0],$m->[1]"}]); # if the key mention is already assigned to a response mention then go to next mention
+          if ($ini >= $m->[0] && $ini <= $m->[1] && # the response mention begining word index is within the bounds of the key mention under consideration
+            $end >= $m->[0] && $end <= $m->[1] && # the response mention end word index is within the bounds of the key mention under consideration
+            $ini <= $m->[2] && $end >= $m->[2]) { # the response mention contains the head word
+            print "found mention sharing a head word\n" if ($VERBOSE > 2);
+            $map{"$ini,$end"} = $id{"$m->[0],$m->[1]"}; # align/map this mention with the key mention under consideration
+            $assigned[$id{"$m->[0],$m->[1]"}] = 1; # set the assignment flag
+            $part++;
+            last;
+          }
+          last if (defined($map{"$ini,$end"}));
+        }
+      }
+    }
+  }
+
 
   # Each mention in response not included in keys has a new ID
-  my $mresp = 0;
+  my $mresp = 0; # apparently this variable is not used any there other than when it is incremented in this block. might want to remove it.
   foreach my $entity (@$response) {
     foreach my $mention (@$entity) {
       my $ini = $mention->[0];
@@ -441,15 +491,29 @@ sub IdentifMentions {
     print "Invented: " . ($idCount - scalar(keys(%id))) . "\n";
   }
 
-  if (defined($totals)) {
-    $totals->{recallDen}      += scalar(keys(%id));
-    $totals->{recallNum}      += $exact;
-    $totals->{precisionDen}   += scalar(keys(%map));
-    $totals->{precisionNum}   += $exact;
-    $totals->{precisionExact} += $exact;
-    $totals->{precisionPart}  += $part;
+  my $SEMEVAL = 1; # for semeval style evaluation
+  
+  if( $SEMEVAL == 1 ) {
+    if (defined($totals)) {
+      $totals->{recallDen}      += scalar(keys(%id));
+      $totals->{recallNum}      += $exact + 0.5 * $part;
+      $totals->{precisionDen}   += scalar(keys(%map));
+      $totals->{precisionNum}   += $exact + 0.5 * $part;
+      $totals->{precisionExact} += $exact;
+      $totals->{precisionPart}  += $part;
+    }
   }
-
+  else {
+    if (defined($totals)) {
+      $totals->{recallDen}      += scalar(keys(%id));
+      $totals->{recallNum}      += $exact;
+      $totals->{precisionDen}   += scalar(keys(%map));
+      $totals->{precisionNum}   += $exact;
+      $totals->{precisionExact} += $exact;
+      $totals->{precisionPart}  += $part;
+    }
+  }
+  
   # The coreference chains arrays are generated again with ID of mentions
   # instead of token coordenates
   my $e = 0;
