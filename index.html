@@ -30,12 +30,40 @@
       <section>
         
 <!--<h3><a id="welcome-to-github-pages" class="anchor" href="#welcome-to-github-pages" aria-hidden="true"><span class="octicon octicon-link"></span></a>Welcome to GitHub Pages.</h3>-->
-
+<h3>Introduction</h3>
 <p>This is a reference implementation of the commonly used coreference scoring algorithms verified by a committee for use by the general community. If you use this scorer, please cite the following two papers:</p>
 <ul>
   <li><bold>Scoring Coreference Partitions of Predicted Mentions: A Reference Implementation.</bold> Sameer Pradhan, Xiaoqiang Luo, Marta Recasens, Eduard Hovy, Vincent Ng and Michael Strube. <i>Proceedings of the 52nd Annual Meeting of the Association for Computational Linguistics</i>, Baltimore, MD, June 2014. [<a href="http://aclweb.org/anthology/P/P14/P14-2006.pdf">pdf</a>]</li>
   <li><bold>An Extension of BLANC to System Mentions.</bold> Xiaoqiang Luo, Sameer Pradhan, Marta Recasens and Eduard Hovy. <i>Proceedings of the 52nd Annual Meeting of the Association for Computational Linguistics</i>, Baltimore, MD, June 2014. [<a href="http://aclweb.org/anthology/P/P14/P14-2005.pdf">pdf</a>]</li>
 </ul>
+<h3>Release History</h3>
+<ul>
+  <li><bold>v8.01</bold> &mdash; This is a small bugfix update that fixes a bug that crashed BLANC when there were some duplicate singleton entities in the response.</li>
+  <li><bold>v8</bold> &mdash; This is the version which includes the implementation of BLANC for predicted mentions and also contains a test suite with about 40 test cases.</li>
+  <li><bold>v7</bold> &mdash; This is the version with implementations for MUC, B-CUBED and CEAF (entity based and mention based). The implementation of BLANC would be included in the next release. </li>
+</ul>
+
+<h3>Background</h3>
+<p>As announced on the CoNLL-2011 and 2012 shared tasks website, there have been some issues with the coreference scorer that was used in the evaluations. In the debugging process, we found issues that went beyond the implementation bugs, and we formed a committee of prominent experts in the field to agree on a standard for evaluating coreference. The committee consists of the following members:</p>
+<ul>
+    <li><bold>Sameer Pradhan</bold>, Harvard University (CoNLL-2011 and 2012 Shared Task Organizer)</li>
+    <li><bold>Xiaoqiang Luo</bold>, Google Inc. (Inventor of the CEAF metric)</li>
+    <li><bold>Marta Recasens</bold>, Google Inc. (Inventor of the BLANC metric)</li>
+    <li><bold>Michael Strube</bold>, HITS gGmbH (Proposer of modifications to B-CUBED and CEAF)</li>
+    <li><bold>Eduard Hovy</bold>, Carnegie Mellon University (Inventor of the BLANC metric)</li>
+    <li><bold>Vincent Ng</bold>, University of Texas at Dallas (Veteran coreference researcher)</li>
+</ul>
+<p>We tried to include the researchers who invented the metrics and who are still active and reachable. We were able to have email communication with Breck Baldwin, one of the researchers who invented the B-CUBED metric.</p>
+
+<p>Our goal was to fix the technical bugs in the CoNLL-2011 and 2012 shared tasks' coreference scorer as well as to provide a publicly available, open-source implementation of the scoring algorithms for coreference. This is now available on this site.</p>
+
+<p>The two papers mentioned above report on the various issues that we encountered and the justification for the selected implementations. The main points are summarized below.</p>
+
+<p>We have re-scored all the systems that participated in the CoNLL-2011 and 2012 shared tasks using the latest version -- v8.01. This is available in a <a href="http://conll.cemantix.org/download/re-scoring-conll-evaluations.v16.xlsx">spreadsheet</a> for now, and it will be posted shortly on the shared tasks' website. This won't affect the official rankings, but will act as an update. Results for the official runs as well as the supplementary evaluation settings are provided in the spreadsheet.</p>
+
+<p>Please feel free to email <a href="mailto:pradhan@cemantix.org?Subject=Question%20regarding%20CoNLL%20Coreference%20Scorer">Sameer Pradhan</a> with questions you might have. 
+
+
 
 <!--<pre><code>$ cd your_repo_root/repo_name
 $ git fetch origin
