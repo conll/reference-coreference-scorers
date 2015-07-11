@@ -14,10 +14,17 @@ BEGIN {
 
 use strict;
 use CorScorer;
+use Getopt::Std;
+
+my %opts;
+getopt("a:i n:s", \%opts);
+my $name = $opts{"n"};
+my $allowMultiTag = $opts{"a"};
+
 
 if (@ARGV < 3) {
   print q|
-use: scorer.pl <metric> <keys_file> <response_file> [name]
+use: scorer.pl [-a] [-n name] <metric> <keys_file> <response_file> 
 
   metric: the metric desired to score the results:
     muc: MUCScorer (Vilain et al, 1995)
@@ -31,10 +38,12 @@ use: scorer.pl <metric> <keys_file> <response_file> [name]
 
   response_file: file with output of coreference system (SemEval format)
 
-  name: [optional] the name of the document to score. If name is not
+  -n name: [optional] the name of the document to score. If name is not
     given, all the documents in the dataset will be scored. If given
     name is "none" then all the documents are scored but only total
     results are shown.
+    
+  -a: [optional] flag to allow multiple tagging of an entity 
 
 |;
   exit;
@@ -47,12 +56,12 @@ if ($metric !~ /^(muc|bcub|ceafm|ceafe|blanc|all)/i) {
 }
 
 if ($metric eq 'all') {
-  foreach my $m ('muc', 'bcub', 'ceafm', 'ceafe', 'blanc') {
+  foreach my $m ('ceafm', 'ceafe', 'blanc','muc', 'bcub') {
     print "\nMETRIC $m:\n";
-    &CorScorer::Score($m, @ARGV);
+    &CorScorer::Score($m, @ARGV, $name, $allowMultiTag);
   }
 }
 else {
-  &CorScorer::Score($metric, @ARGV);
+  &CorScorer::Score($metric, @ARGV, $name, $allowMultiTag);
 }
 
