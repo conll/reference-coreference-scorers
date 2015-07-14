@@ -96,15 +96,6 @@ our @TestCases = (
                         "ceafe" => [0.73333, 0.55, 0.62857],
                         "blanc" => [0.35227, 0.27206, 0.30357] }
 },
-{ id => "A9", 
-  key_file => "DataFiles/TC-A.key", 
-  response_file => "DataFiles/TC-A-9.response",
-  expected_metrics => { "muc" => [1/3, 1/3, 1/3],
-                        "bcub" => [(10/3)/6, (1+4/3+1/2)/7, 2*(5/9)*(17/42)/((5/9)+(17/42))],
-                        "ceafm" => [0.66667, 0.57143, 0.61538],
-                        "ceafe" => [0.73333, 0.55, 0.62857],
-                        "blanc" => [0.35227, 0.27206, 0.30357] }
-},
 { id => "A10", 
   key_file => "DataFiles/TC-A.key", 
   response_file => "DataFiles/TC-A-10.response",
@@ -356,6 +347,45 @@ our @TestCases = (
                           #"ceafm" => ,
                           #"ceafe" => ,
                           "blanc" => [0.13333, 0.18182, 0.15385] }
+},
+{ id => "O1", 
+    key_file => "DataFiles/TC-O.key", 
+    response_file => "DataFiles/TC-O-1.response",
+    allow_multi_tag => 1,
+    expected_metrics => { "muc" => [1.0, 1.0, 1.0],
+                          "bcub" => [1.0, 1.0, 1.0],
+                          "ceafm" => [1.0, 1.0, 1.0],
+                          "ceafe" => [1.0, 1.0, 1.0],
+                          "blanc" => [1.0, 1.0, 1.0] }
+},
+{ id => "O2", 
+    key_file => "DataFiles/TC-O.key", 
+    response_file => "DataFiles/TC-O-2.response",
+    allow_multi_tag => 1,
+    expected_metrics => { "muc" => [3/4, 1.0, 0.857142857142857],
+                          "bcub" => [0.75, 1.0, 0.8571],
+                          "ceafm" => [0.857142857142857, 1.0, 0.923076923076923],
+                          "ceafe" => [0.952380952380952, 0.952380952380952, 0.952380952380952],
+                          "blanc" => [0.483516483516483, 0.693181818181818, 0.564393939393939] }
+},
+{ id => "O3", 
+  key_file => "DataFiles/TC-A.key", 
+  response_file => "DataFiles/TC-O-3.response",
+  allow_multi_tag => 1,
+  expected_metrics => { "muc" => [1, 0.75, 0.857142857142857],
+                        "bcub" => [1, 0.75, 0.857142857142857],
+                        "ceafm" => [1, 0.857142857142857, 0.923076923076923],
+                        "ceafe" => [0.952380952380952, 0.952380952380952, 0.952380952380952],
+                        "blanc" => [0.693181818181818, 0.483516483516483, 0.564393939393939] }
+},
+{ id => "A9", 
+  key_file => "DataFiles/TC-A.key", 
+  response_file => "DataFiles/TC-A-9.response",
+  expected_metrics => { "muc" => [1/3, 1/3, 1/3],
+                        "bcub" => [(10/3)/6, (1+4/3+1/2)/7, 2*(5/9)*(17/42)/((5/9)+(17/42))],
+                        "ceafm" => [0.66667, 0.57143, 0.61538],
+                        "ceafe" => [0.73333, 0.55, 0.62857],
+                        "blanc" => [0.35227, 0.27206, 0.30357] }
 }
 
 );

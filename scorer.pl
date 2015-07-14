@@ -21,10 +21,9 @@ getopt("a:i n:s", \%opts);
 my $name = $opts{"n"};
 my $allowMultiTag = $opts{"a"};
 
-
 if (@ARGV < 3) {
   print q|
-use: scorer.pl [-a] [-n name] <metric> <keys_file> <response_file> 
+use: scorer.pl [-a] [-n name] <metric> <keys_file> <response_file>
 
   metric: the metric desired to score the results:
     muc: MUCScorer (Vilain et al, 1995)
@@ -43,7 +42,7 @@ use: scorer.pl [-a] [-n name] <metric> <keys_file> <response_file>
     name is "none" then all the documents are scored but only total
     results are shown.
     
-  -a: [optional] flag to allow multiple tagging of an entity 
+  -a: [optional] flag to allow multiple tagging of an entity
 
 |;
   exit;
@@ -56,12 +55,12 @@ if ($metric !~ /^(muc|bcub|ceafm|ceafe|blanc|all)/i) {
 }
 
 if ($metric eq 'all') {
-  foreach my $m ('ceafm', 'ceafe', 'blanc','muc', 'bcub') {
+  foreach my $m ('muc', 'bcub', 'ceafm', 'ceafe', 'blanc') {
     print "\nMETRIC $m:\n";
-    &CorScorer::Score($m, @ARGV, $name, $allowMultiTag);
+    &CorScorer::Score($m, @ARGV, $allowMultiTag, $name);
   }
 }
 else {
-  &CorScorer::Score($metric, @ARGV, $name, $allowMultiTag);
+  &CorScorer::Score($metric, @ARGV, $allowMultiTag, $name);
 }
 
