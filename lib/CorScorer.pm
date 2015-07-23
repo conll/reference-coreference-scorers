@@ -1226,7 +1226,10 @@ sub BLANC_Internal {
 "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
     if ($VERBOSE > 2);
 
-  foreach my $e (@kcl, @rcl) { $union_cl{$e}++ && $isect_cl{$e}++ }
+  my @nkcl = normalizeChainList(@kcl);
+  my @nrcl = normalizeChainList(@rcl);
+	
+  foreach my $e (@nkcl, @nrcl) { $union_cl{$e}++ && $isect_cl{$e}++ }
 
   @union_cl = keys %union_cl;
   @isect_cl = keys %isect_cl;
@@ -1411,58 +1414,39 @@ sub BCUBEDMulti {
   my $rIndex = Indexa( 1, $response );
   my $acumP  = 0;
   my $acumR  = 0;
-  my %done;
-
+ 
+  my $iterator = 0;
+  
   foreach my $rChain (@$response) {
 	foreach my $m (@$rChain) {
-      my @kChainList=();
-	  my $clusterIds;
-	  
-      if ( defined( $kIndex->{$m} ) ) {
-		  $clusterIds = $kIndex->{$m};
-	  } else {
-		  my @occurrences = split( ',', $m );
-		  for my $v ( keys $kIndex ) {
-			
-		  # if key or response has multi-tagged mentions 
-		  if (index( $v, join( ',', (@occurrences)[0], (@occurrences)[0] ) ) !=  -1	||   ($v eq (@occurrences)[0]))
-		  {
-		    $clusterIds = $kIndex->{$v}; 
-		    last;
-		  }
-	    }
+     my @kChainList=();	  
+     #an entity can lie in multiple clusters so execute for the cluster in key which is same as response
+     my $clusterIds = $kIndex->{Definedm($m, %$kIndex)};	
+	 my @cList = split( ',', $clusterIds );
+	 my $kChain=[];
+	 for my $c (@cList){
+		if ($c eq $iterator){
+		  $kChain = $keys->[$iterator]
+	   }		
 	 }
-	 if ( index( $clusterIds, ',' ) != -1 ) {
-		@kChainList = split( ',', $clusterIds );
-	 } else {
-		@kChainList = $clusterIds;
-	 }
-
-	for my $k (@kChainList) {
-	  if ( !defined( $done{$m}{$k} ) ) {
-	    my $kChain = $keys->[$k];
-		my $ci = 0;
-		my $ri = scalar(@$rChain);
-		my $ki = scalar(@$kChain);
-
-		$done{$m}{$k} = 1;
-
-		# common mentions in rChain and kChain => Ci
-		foreach my $mr (@$rChain) {
-		  foreach my $mk (@$kChain) {
-			if (CheckEqualityForEntityClusters( $mr, $mk ) ) {
-				$ci++;
+	
+     my $ci = 0;
+	 my $ri = scalar(@$rChain);
+	 my $ki = scalar(@$kChain);
+	 # common mentions in rChain and kChain => Ci
+	 foreach my $mr (@$rChain) {
+	   foreach my $mk (@$kChain) {
+	     if (CheckEqualityForEntityClusters( $mr, $mk ) ) {
+		    	$ci++;
 			    last;
 		     }
 			}
 		  }
-
+		  
 		 $acumP += $ci / $ri if ($ri);
 		 $acumR += $ci / $ki if ($ki);
-		 last;
-		}
-	   }
 	  }
+	  $iterator += 1;
 	}
 
 	# Mentions in key
@@ -1524,10 +1508,12 @@ sub Definedm {
   } else {
 	for my $m ( keys %idx ) {
 	  #in case of multi-tagging same entity/event is tagged twice with same id so id,id should exist in the index
-	  if ( index( join( ',', $k, $k ), $m ) != -1 ) {
-		return $m;
-	 }
-   }
+	   my @indextocheck = split( ',', $m );
+	   my @indexindict = split( ',', $k );
+	   if (@indextocheck[0] == @indexindict[0]){
+	      return $m;
+	   } 
+     }
   }
 }
 
@@ -1558,3 +1544,16 @@ sub CheckEqualityOfEntityInstances {
   return 0;
 }
 
+sub normalizeChainList{
+	my (@links) = @_;
+	my @normalizedLinks;
+	for my $l (@links){
+		if (index($l, ',') != -1){
+			my $slink = (split(',', $l))[-1];
+			push(@normalizedLinks, $slink);
+		} else {
+			push(@normalizedLinks, $l);
+		}
+	}
+	return @normalizedLinks;
+}
