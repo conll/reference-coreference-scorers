@@ -72,6 +72,7 @@ my $VERBOSE         = 2;
 my $HEAD_COLUMN     = 8;
 my $RESPONSE_COLUMN = -1;
 my $KEY_COLUMN      = -1;
+my $DELIMITER       = ":";
 
 # Score. Scores the results of a coreference resolution system
 # Input: Metric, keys file, response file, [name]
@@ -358,9 +359,9 @@ sub IdentifMentions {
     foreach my $mention (@$entity) {
       if (defined($id{"$mention->[0],$mention->[1]"})) {
       	if ($allowMultiple){
-      		# record multiple instance joined by comma, for instance if entityId '1' is present in three different clusters the
-      		# entityId will be represented as 1,1,1
-			$id{"$mention->[0],$mention->[1]"} = join( ',',	$id{"$mention->[0],$mention->[1]"},	$id{"$mention->[0],$mention->[1]"} );
+      		# record multiple instance joined by delimiter, for instance if entityId '1' is present in three different clusters the
+      		# entityId will be represented as 1:1:1
+			$id{"$mention->[0],$mention->[1]"} = join( $DELIMITER,	$id{"$mention->[0],$mention->[1]"},	$id{"$mention->[0],$mention->[1]"} );
       	} else {
         print "Repeated mention in the key: $mention->[0], $mention->[1] ",
           $id{"$mention->[0],$mention->[1]"}, $idCount, "\n";
@@ -383,7 +384,7 @@ sub IdentifMentions {
       if (defined($map{"$mention->[0],$mention->[1]"})) {
       	if ($allowMultiple){
       		
-      		$map{"$mention->[0],$mention->[1]"} = join( ',', $map{"$mention->[0],$mention->[1]"}, $map{"$mention->[0],$mention->[1]"} );
+      		$map{"$mention->[0],$mention->[1]"} = join( $DELIMITER, $map{"$mention->[0],$mention->[1]"}, $map{"$mention->[0],$mention->[1]"} );
       						
 			if ( index($id{"$mention->[0],$mention->[1]"}, $map{"$mention->[0],$mention->[1]"}) == 0){#put a split
 				$exact++;
@@ -412,11 +413,11 @@ sub IdentifMentions {
         	$map{"$mention->[0],$mention->[1]"} = $id{"$mention->[0],$mention->[1]"};
         } else {
         	#check if multiple instances are joined together
-			if (index( $id{"$mention->[0],$mention->[1]"}, ',' ) == -1 ){
+			if (index( $id{"$mention->[0],$mention->[1]"}, $DELIMITER ) == -1 ){
 					$map{"$mention->[0],$mention->[1]"} =  $id{"$mention->[0],$mention->[1]"};
 			} else {
 				#assign the event instance id
-				my @temp = split( ',', $id{"$mention->[0],$mention->[1]"} );
+				my @temp = split( $DELIMITER, $id{"$mention->[0],$mention->[1]"} );
 				$map{"$mention->[0],$mention->[1]"} = $temp[0];
 			}
         }
@@ -471,8 +472,8 @@ sub IdentifMentions {
   my $totalResponseMentions = ComputeMentionTotal( \%map );
   
   if ($VERBOSE) {
-    print "Total key mentions: " . scalar(keys(%id)) . "\n";
-    print "Total response mentions: " . scalar(keys(%map)) . "\n";
+    print "Total key mentions: " . $totalKeyMentions . "\n";
+    print "Total response mentions: " . $totalKeyMentions. "\n";
     print "Strictly correct identified mentions: $exact\n";
     print "Partially correct identified mentions: $part\n";
     print "No identified: " . (scalar(keys(%id)) - $exact - $part) . "\n";
@@ -653,7 +654,7 @@ sub multiTagIndexa {
   for ( my $i = 0 ; $i < @$arrays ; $i++ ) {
 	foreach my $e ( @{ $arrays->[$i] } ) {
 	  if ( exists $index{$e} ) {
-		$index{$e} = join( ',', $index{$e}, $i );
+		$index{$e} = join( $DELIMITER, $index{$e}, $i );
 	 } else {
 		$index{$e} = $i;
 	 }
@@ -1422,7 +1423,7 @@ sub BCUBEDMulti {
      my @kChainList=();	  
      #an entity can lie in multiple clusters so execute for the cluster in key which is same as response
      my $clusterIds = $kIndex->{Definedm($m, %$kIndex)};	
-	 my @cList = split( ',', $clusterIds );
+	 my @cList = split( $DELIMITER, $clusterIds );
 	 my $kChain=[];
 	 for my $c (@cList){
 		if ($c eq $iterator){
@@ -1473,9 +1474,9 @@ sub CheckEqualityForEntityClusters {
 	return 1;
   }
   # this takes care of multi-tagged entity references
-  if ( ( index( $gold, ',' ) != -1 ) || ( index( $system, ',' ) != -1 ) ) {
-	my @goldsplit = split( ',', $gold );
-	my @syssplit  = split( ',', $system );
+  if ( ( index( $gold, $DELIMITER ) != -1 ) || ( index( $system, $DELIMITER ) != -1 ) ) {
+	my @goldsplit = split( $DELIMITER, $gold );
+	my @syssplit  = split( $DELIMITER, $system );
 
 	if ( (@goldsplit)[0] eq (@syssplit)[0] ) {
 		return 1;
@@ -1490,8 +1491,8 @@ sub ComputeMentionTotal() {
   my $count = 0;
 
   for my $m ( values %mentionHash ) {
-	if ( index( $m, "," ) != -1 ) {
-		my @temp = split( ',', $m );
+	if ( index( $m, $DELIMITER ) != -1 ) {
+		my @temp = split( $DELIMITER, $m );
 		$count += scalar(@temp);
 	} else {
 		$count += 1;
@@ -1508,8 +1509,8 @@ sub Definedm {
   } else {
 	for my $m ( keys %idx ) {
 	  #in case of multi-tagging same entity/event is tagged twice with same id so id,id should exist in the index
-	   my @indextocheck = split( ',', $m );
-	   my @indexindict = split( ',', $k );
+	   my @indextocheck = split( $DELIMITER, $m );
+	   my @indexindict = split( $DELIMITER, $k );
 	   if (@indextocheck[0] == @indexindict[0]){
 	      return $m;
 	   } 
@@ -1526,9 +1527,9 @@ sub CheckEqualityOfEntityInstances {
 		return 1;
 	}
 
-  if ( $allowMultiple && ( (index( $gold, ',' ) != -1 ) || ( index( $system, ',' ) != -1 ) )) {
-    my @val1array = split( ',', $gold );
-	my @val2array = split( ',', $system );
+  if ( $allowMultiple && ( (index( $gold, $DELIMITER ) != -1 ) || ( index( $system, $DELIMITER ) != -1 ) )) {
+    my @val1array = split( $DELIMITER, $gold );
+	my @val2array = split( $DELIMITER, $system );
 	my $overlap   = 0;
 	for my $v1 (@val1array) {
 	  for my $v2 (@val2array) {
@@ -1548,8 +1549,8 @@ sub normalizeChainList{
 	my (@links) = @_;
 	my @normalizedLinks;
 	for my $l (@links){
-		if (index($l, ',') != -1){
-			my $slink = (split(',', $l))[-1];
+		if (index($l, $DELIMITER) != -1){
+			my $slink = (split($DELIMITER, $l))[-1];
 			push(@normalizedLinks, $slink);
 		} else {
 			push(@normalizedLinks, $l);
