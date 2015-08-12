@@ -631,38 +631,20 @@ sub Indexa {
   my $allowMultiTag = shift(@_);
   my ($arrays) = @_;
   my %index;
-  
-  if ($allowMultiTag) {
-	return multiTagIndexa($arrays);
-  }
-  
+    
   for (my $i = 0 ; $i < @$arrays ; $i++) {
     foreach my $e (@{$arrays->[$i]}) {
-      $index{$e} = $i;
+    	#joins clusters containing same entityId together, for instance, if entityId 'a' belongs
+		# to two clusters 1 and 2 then the index returns (a:a)=>(1:2)
+    	if ( $allowMultiTag && exists $index{$e} ) {
+    		$index{$e} = join( $DELIMITER, $index{$e}, $i );
+    	} else {
+      		$index{$e} = $i;
+    	}
     }
   }
   return \%index;
 }
-
-# subroutine Indexa above overrides the multiple occurrences of an entity with the last instance
-# multiTagIndexa joins all clusters containing an entityId together, for instance, if entityId '1' belongs
-# to two clusters 1 and 2 then the index returns (1,1)=>(1,2)
-sub multiTagIndexa {
-  my ($arrays) = @_;
-  my %index;
-
-  for ( my $i = 0 ; $i < @$arrays ; $i++ ) {
-	foreach my $e ( @{ $arrays->[$i] } ) {
-	  if ( exists $index{$e} ) {
-		$index{$e} = join( $DELIMITER, $index{$e}, $i );
-	 } else {
-		$index{$e} = $i;
-	 }
-   }
-  }
-  return \%index;
-}
-
 
 # Consider the "links" within every coreference chain. For example,
 # chain A-B-C-D has 3 links: A-B, B-C and C-D.
@@ -716,19 +698,37 @@ sub MUCScorer {
 # recall for every mention in the keys
 sub BCUBED {
   my ($keys, $response, $allowMultiple) = @_;
-  
-  if ($allowMultiple) {
-	return BCUBEDMulti( $keys, $response );
+    
+  my $kIndex;  
+  my $rIndex;
+  if ($allowMultiple){
+  	$kIndex = Indexa(1, $keys); 
+  	$rIndex = Indexa(1, $response);
+  } else {
+  	$kIndex = Indexa(0, $keys); 
+  	$rIndex = Indexa(0, $response);
   }
-  
-  my $kIndex = Indexa(0, $keys);
-  my $rIndex = Indexa(0, $response);
+   
   my $acumP  = 0;
   my $acumR  = 0;
+  my $iterator = 0;
   
   foreach my $rChain (@$response) {
     foreach my $m (@$rChain) {
-      my $kChain = (defined($kIndex->{$m})) ? $keys->[$kIndex->{$m}] : [];
+      my $kChain=[];
+      if ($allowMultiple) {
+		my @kChainList=();	  
+    	#an entity can lie in multiple clusters so execute for the cluster in key which is same as response
+     	my $clusterIds = $kIndex->{Definedm($m, %$kIndex)};	
+	 	my @cList = split( $DELIMITER, $clusterIds );
+	 	for my $c (@cList){
+			if ($c eq $iterator){
+		  		$kChain = $keys->[$iterator];
+	   		}		
+	 	 }
+      } else {  
+     	 $kChain = (defined($kIndex->{$m})) ? $keys->[$kIndex->{$m}] : [];
+      }
       my $ci     = 0;
       my $ri     = scalar(@$rChain);
       my $ki     = scalar(@$kChain);
@@ -736,7 +736,7 @@ sub BCUBED {
       # common mentions in rChain and kChain => Ci
       foreach my $mr (@$rChain) {
         foreach my $mk (@$kChain) {
-          if ($mr == $mk) {
+          if (CheckEqualityForEntityClusters( $mr, $mk )) {
             $ci++;
             last;
           }
@@ -746,6 +746,7 @@ sub BCUBED {
       $acumP += $ci / $ri if ($ri);
       $acumR += $ci / $ki if ($ki);
     }
+    $iterator += 1;
   }
 
   # Mentions in key
@@ -1408,63 +1409,6 @@ sub ComputeBLANCFromCounts {
 
   return ($r_blanc, $p_blanc, $f_blanc);
 }
-
-sub BCUBEDMulti {
-  my ( $keys, $response ) = @_;
-  my $kIndex = Indexa( 1, $keys );
-  my $rIndex = Indexa( 1, $response );
-  my $acumP  = 0;
-  my $acumR  = 0;
- 
-  my $iterator = 0;
-  
-  foreach my $rChain (@$response) {
-	foreach my $m (@$rChain) {
-     my @kChainList=();	  
-     #an entity can lie in multiple clusters so execute for the cluster in key which is same as response
-     my $clusterIds = $kIndex->{Definedm($m, %$kIndex)};	
-	 my @cList = split( $DELIMITER, $clusterIds );
-	 my $kChain=[];
-	 for my $c (@cList){
-		if ($c eq $iterator){
-		  $kChain = $keys->[$iterator]
-	   }		
-	 }
-	
-     my $ci = 0;
-	 my $ri = scalar(@$rChain);
-	 my $ki = scalar(@$kChain);
-	 # common mentions in rChain and kChain => Ci
-	 foreach my $mr (@$rChain) {
-	   foreach my $mk (@$kChain) {
-	     if (CheckEqualityForEntityClusters( $mr, $mk ) ) {
-		    	$ci++;
-			    last;
-		     }
-			}
-		  }
-		  
-		 $acumP += $ci / $ri if ($ri);
-		 $acumR += $ci / $ki if ($ki);
-	  }
-	  $iterator += 1;
-	}
-
-	# Mentions in key
-	my $keymentions = 0;
-	foreach my $kEntity (@$keys) {
-		$keymentions += scalar(@$kEntity);
-	}
-
-	# Mentions in response
-	my $resmentions = 0;
-	foreach my $rEntity (@$response) {
-		$resmentions += scalar(@$rEntity);
-	}
-
-	ShowRPF( $acumR, $keymentions, $acumP, $resmentions ) if ($VERBOSE);
-	return ( $acumR, $keymentions, $acumP, $resmentions );
- }
 
 # Checks equality for entityIDs for instance, it checks equality between entityIds "1" and "1,1"
 sub CheckEqualityForEntityClusters {

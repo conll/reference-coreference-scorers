@@ -42,7 +42,8 @@ use: scorer.pl [-a] [-n name] <metric> <keys_file> <response_file>
     name is "none" then all the documents are scored but only total
     results are shown.
     
-  -a: [optional] flag to allow multiple tagging of an entity
+  -a 0/1: [optional] flag to allow multiple tagging of an entity. '0' sets 
+    it off and '1' sets it on. 
 
 |;
   exit;
