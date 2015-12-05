@@ -388,3 +388,14 @@ Rsp/Sys: {ab} {cxy} {z}
 
 Expected: BLANC=0.15 [recall_n=2/15, prec_n=2/11]
 
+TC-O-1 - Basic test for multiple tagged entities. The Gold and System are same and the P-R numbers should be 100% when the multi-tag flag is set to true else it will be less than 100%.
+Key/Ref: {a} {bc} {bdef}
+Rsp/Sys: {a} {bc} {bdef}
+
+TC-O-2 - The double tagging is absent in system response and present in gold response
+Key/Ref: {a} {bc} {bdef}
+Rsp/Sys: {a} {bc} {def}
+
+TC-O-3 - The double tagging is absent in gold and present in system response
+Key/Ref: {a} {bc} {def}
+Rsp/Sys: {a} {bc} {bdef}

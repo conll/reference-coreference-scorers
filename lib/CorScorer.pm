@@ -72,6 +72,7 @@ my $VERBOSE         = 2;
 my $HEAD_COLUMN     = 8;
 my $RESPONSE_COLUMN = -1;
 my $KEY_COLUMN      = -1;
+my $DELIMITER       = ":";
 
 # Score. Scores the results of a coreference resolution system
 # Input: Metric, keys file, response file, [name]
@@ -93,11 +94,13 @@ my $KEY_COLUMN      = -1;
 # Precision = precision_num / precision_den
 # F1 = 2 * Recall * Precision / (Recall + Precision)
 sub Score {
-  my ($metric, $kFile, $rFile, $name) = @_;
+  my ($metric, $kFile, $rFile, $allowMultipleTagging, $name) = @_;
 	our $repeated_mentions = 0;
-
+  # flag to account for multi-tagging of the entities by default its off
+  my $allowMultiple = ( ( $allowMultipleTagging == 1 ) && defined($allowMultipleTagging) )  ? 1 : 0;
+  
   if (lc($metric) eq 'blanc') {
-    return ScoreBLANC($kFile, $rFile, $name);
+    return ScoreBLANC($kFile, $rFile, $allowMultiple, $name);
   }
 
   my %idenTotals =
@@ -112,12 +115,12 @@ sub Score {
       $keyChains, $keyChainsWithSingletonsFromResponse,
       $responseChains, $responseChainsWithoutMentionsNotInKey,
       $keyChainsOrig, $responseChainsOrig
-    ) = IdentifMentions($keys, $response, \%idenTotals);
+    ) = IdentifMentions($keys, $response, $allowMultiple, \%idenTotals);
     ($acumNR, $acumDR, $acumNP, $acumDP) = Eval(
       $metric,                                $keyChains,
       $keyChainsWithSingletonsFromResponse,   $responseChains,
       $responseChainsWithoutMentionsNotInKey, $keyChainsOrig,
-      $responseChainsOrig
+      $responseChainsOrig,					  $allowMultiple
     );
   }
   else {
@@ -136,12 +139,12 @@ sub Score {
         $keyChains,      $keyChainsWithSingletonsFromResponse,
         $responseChains, $responseChainsWithoutMentionsNotInKey,
         $keyChainsOrig,  $responseChainsOrig
-      ) = IdentifMentions($keys, $response, \%idenTotals);
+      ) = IdentifMentions($keys, $response, $allowMultiple, \%idenTotals);
       my ($nr, $dr, $np, $dp) = Eval(
         $metric,                                $keyChains,
         $keyChainsWithSingletonsFromResponse,   $responseChains,
         $responseChainsWithoutMentionsNotInKey, $keyChainsOrig,
-        $responseChainsOrig
+        $responseChainsOrig,                    $allowMultiple
       );
 
       $acumNR += $nr;
@@ -339,7 +342,7 @@ sub GetFileNames {
 }
 
 sub IdentifMentions {
-	my ($keys, $response, $totals) = @_;
+	my ($keys, $response,$allowMultiple, $totals) = @_;
   my @kChains;
   my @kChainsWithSingletonsFromResponse;
   my @rChains;
@@ -355,11 +358,18 @@ sub IdentifMentions {
   foreach my $entity (@$keys) {
     foreach my $mention (@$entity) {
       if (defined($id{"$mention->[0],$mention->[1]"})) {
+      	if ($allowMultiple){
+      		# record multiple instance joined by delimiter, for instance if entityId '1' is present in three different clusters the
+      		# entityId will be represented as 1:1:1
+			$id{"$mention->[0],$mention->[1]"} = join( $DELIMITER,	$id{"$mention->[0],$mention->[1]"},	$id{"$mention->[0],$mention->[1]"} );
+      	} else {
         print "Repeated mention in the key: $mention->[0], $mention->[1] ",
           $id{"$mention->[0],$mention->[1]"}, $idCount, "\n";
+      	}
+      } else {
+         $id{"$mention->[0],$mention->[1]"} = $idCount;
+         $idCount++;
       }
-      $id{"$mention->[0],$mention->[1]"} = $idCount;
-      $idCount++;
     }
   }
 
@@ -372,6 +382,14 @@ sub IdentifMentions {
 		
     foreach my $mention (@$entity) {
       if (defined($map{"$mention->[0],$mention->[1]"})) {
+      	if ($allowMultiple){
+      		
+      		$map{"$mention->[0],$mention->[1]"} = join( $DELIMITER, $map{"$mention->[0],$mention->[1]"}, $map{"$mention->[0],$mention->[1]"} );
+      						
+			if ( index($id{"$mention->[0],$mention->[1]"}, $map{"$mention->[0],$mention->[1]"}) == 0){#put a split
+				$exact++;
+			}
+      	} else {
         print "Repeated mention in the response: $mention->[0], $mention->[1] ",
           $map{"$mention->[0],$mention->[1]"},
           $id{"$mention->[0],$mention->[1]"},
@@ -384,26 +402,36 @@ sub IdentifMentions {
 						print STDERR "Found too many repeated mentions (> 10) in the response, so refusing to score. Please fix the output.\n";
 						exit 1;
 				}
-
+      	}
       }
       elsif (defined($id{"$mention->[0],$mention->[1]"})
         && !$assigned[$id{"$mention->[0],$mention->[1]"}])
       {
         $assigned[$id{"$mention->[0],$mention->[1]"}] = 1;
-        $map{"$mention->[0],$mention->[1]"} =
-          $id{"$mention->[0],$mention->[1]"};
+        
+        if ( !$allowMultiple ) {
+        	$map{"$mention->[0],$mention->[1]"} = $id{"$mention->[0],$mention->[1]"};
+        } else {
+        	#check if multiple instances are joined together
+			if (index( $id{"$mention->[0],$mention->[1]"}, $DELIMITER ) == -1 ){
+					$map{"$mention->[0],$mention->[1]"} =  $id{"$mention->[0],$mention->[1]"};
+			} else {
+				#assign the event instance id
+				my @temp = split( $DELIMITER, $id{"$mention->[0],$mention->[1]"} );
+				$map{"$mention->[0],$mention->[1]"} = $temp[0];
+			}
+        }
         $exact++;
       }
       $i++;
     }
-
-    # Remove repeated mentions in the response
-    foreach my $i (sort { $b <=> $a } (@remove)) {
-      splice(@$entity, $i, 1);
-    }
+	  if (!$allowMultiple) {
+	  # Remove repeated mentions in the response
+		foreach my $i ( sort { $b <=> $a } (@remove) ) {
+			splice( @$entity, $i, 1 );
+		}
+	 }
   }
-
-
 	# now, lets remove any empty elements in the response array after removing
 	# potential repeats
 	my @another_remove = ();
@@ -439,10 +467,13 @@ sub IdentifMentions {
       $mresp++;
     }
   }
-
+  
+  my $totalKeyMentions      = ComputeMentionTotal( \%id );
+  my $totalResponseMentions = ComputeMentionTotal( \%map );
+  
   if ($VERBOSE) {
-    print "Total key mentions: " . scalar(keys(%id)) . "\n";
-    print "Total response mentions: " . scalar(keys(%map)) . "\n";
+    print "Total key mentions: " . $totalKeyMentions . "\n";
+    print "Total response mentions: " . $totalKeyMentions. "\n";
     print "Strictly correct identified mentions: $exact\n";
     print "Partially correct identified mentions: $part\n";
     print "No identified: " . (scalar(keys(%id)) - $exact - $part) . "\n";
@@ -450,9 +481,9 @@ sub IdentifMentions {
   }
 
   if (defined($totals)) {
-    $totals->{recallDen}      += scalar(keys(%id));
+    $totals->{recallDen}      += $totalKeyMentions;
     $totals->{recallNum}      += $exact;
-    $totals->{precisionDen}   += scalar(keys(%map));
+    $totals->{precisionDen}   += $totalResponseMentions;
     $totals->{precisionNum}   += $exact;
     $totals->{precisionExact} += $exact;
     $totals->{precisionPart}  += $part;
@@ -483,8 +514,8 @@ sub IdentifMentions {
   # 3a. For computing precision: put twinless system mentions in key
   # 3b. For computing recall: discard twinless system mentions in response
 
-  my $kIndex = Indexa(\@kChains);
-  my $rIndex = Indexa(\@rChains);
+  my $kIndex = Indexa($allowMultiple, \@kChains);
+  my $rIndex = Indexa($allowMultiple, \@rChains);
 
   # 1. Include the non-detected key mentions into the response as singletons
   my $addkey = 0;
@@ -572,22 +603,22 @@ sub IdentifMentions {
 
 sub Eval {
   my ($scorer, $keys, $keysPrecision, $response, $responseRecall,
-    $keyChainsOrig, $responseChainsOrig)
+    $keyChainsOrig, $responseChainsOrig, $allowMultiple)
     = @_;
   $scorer = lc($scorer);
   my ($nr, $dr, $np, $dp);
   if ($scorer eq 'muc') {
     ($nr, $dr, $np, $dp) =
-      MUCScorer($keys, $keysPrecision, $response, $responseRecall);
+      MUCScorer($keys, $keysPrecision, $response, $responseRecall, $allowMultiple);
   }
   elsif ($scorer eq 'bcub') {
-    ($nr, $dr, $np, $dp) = BCUBED($keyChainsOrig, $responseChainsOrig);
+    ($nr, $dr, $np, $dp) = BCUBED($keyChainsOrig, $responseChainsOrig, $allowMultiple);
   }
   elsif ($scorer eq 'ceafm') {
-    ($nr, $dr, $np, $dp) = CEAF($keyChainsOrig, $responseChainsOrig, 1);
+    ($nr, $dr, $np, $dp) = CEAF($keyChainsOrig, $responseChainsOrig, 1, $allowMultiple);
   }
   elsif ($scorer eq 'ceafe') {
-    ($nr, $dr, $np, $dp) = CEAF($keyChainsOrig, $responseChainsOrig, 0);
+    ($nr, $dr, $np, $dp) = CEAF($keyChainsOrig, $responseChainsOrig, 0, $allowMultiple);
   }
   else {
     die "Metric $scorer not implemented yet\n";
@@ -597,12 +628,19 @@ sub Eval {
 
 # Indexes an array of arrays, in order to easily know the position of an element
 sub Indexa {
+  my $allowMultiTag = shift(@_);
   my ($arrays) = @_;
   my %index;
-
+    
   for (my $i = 0 ; $i < @$arrays ; $i++) {
     foreach my $e (@{$arrays->[$i]}) {
-      $index{$e} = $i;
+    	#joins clusters containing same entityId together, for instance, if entityId 'a' belongs
+		# to two clusters 1 and 2 then the index returns (a:a)=>(1:2)
+    	if ( $allowMultiTag && exists $index{$e} ) {
+    		$index{$e} = join( $DELIMITER, $index{$e}, $i );
+    	} else {
+      		$index{$e} = $i;
+    	}
     }
   }
   return \%index;
@@ -614,9 +652,9 @@ sub Indexa {
 # Precision: num correct links / num output links
 
 sub MUCScorer {
-  my ($keys, $keysPrecision, $response, $responseRecall) = @_;
+  my ($keys, $keysPrecision, $response, $responseRecall, $allowMultiple) = @_;
 
-  my $kIndex = Indexa($keys);
+  my $kIndex = Indexa($allowMultiple, $keys);
 
   # Calculate correct links
   my $correct = 0;
@@ -628,13 +666,12 @@ sub MUCScorer {
       my $id_i = $rEntity->[$i];
       for (my $j = $i + 1 ; $j < @$rEntity ; $j++) {
         my $id_j = $rEntity->[$j];
-        if ( defined($kIndex->{$id_i})
-          && defined($kIndex->{$id_j})
-          && $kIndex->{$id_i} == $kIndex->{$id_j})
-        {
-          $correct++;
-          last;
-        }
+        my $temp = CheckEqualityOfEntityInstances($allowMultiple,
+					$kIndex->{ Definedm( $id_i, %$kIndex ) }, $kIndex->{ Definedm( $id_j, %$kIndex ) });
+        if ($temp != 0){
+			$correct += $temp;
+			last;
+		}
       }
     }
   }
@@ -660,14 +697,38 @@ sub MUCScorer {
 # Compute precision for every mention in the response, and compute
 # recall for every mention in the keys
 sub BCUBED {
-  my ($keys, $response) = @_;
-  my $kIndex = Indexa($keys);
-  my $rIndex = Indexa($response);
+  my ($keys, $response, $allowMultiple) = @_;
+    
+  my $kIndex;  
+  my $rIndex;
+  if ($allowMultiple){
+  	$kIndex = Indexa(1, $keys); 
+  	$rIndex = Indexa(1, $response);
+  } else {
+  	$kIndex = Indexa(0, $keys); 
+  	$rIndex = Indexa(0, $response);
+  }
+   
   my $acumP  = 0;
   my $acumR  = 0;
+  my $iterator = 0;
+  
   foreach my $rChain (@$response) {
     foreach my $m (@$rChain) {
-      my $kChain = (defined($kIndex->{$m})) ? $keys->[$kIndex->{$m}] : [];
+      my $kChain=[];
+      if ($allowMultiple) {
+		my @kChainList=();	  
+    	#an entity can lie in multiple clusters so execute for the cluster in key which is same as response
+     	my $clusterIds = $kIndex->{Definedm($m, %$kIndex)};	
+	 	my @cList = split( $DELIMITER, $clusterIds );
+	 	for my $c (@cList){
+			if ($c eq $iterator){
+		  		$kChain = $keys->[$iterator];
+	   		}		
+	 	 }
+      } else {  
+     	 $kChain = (defined($kIndex->{$m})) ? $keys->[$kIndex->{$m}] : [];
+      }
       my $ci     = 0;
       my $ri     = scalar(@$rChain);
       my $ki     = scalar(@$kChain);
@@ -675,7 +736,7 @@ sub BCUBED {
       # common mentions in rChain and kChain => Ci
       foreach my $mr (@$rChain) {
         foreach my $mk (@$kChain) {
-          if ($mr == $mk) {
+          if (CheckEqualityForEntityClusters( $mr, $mk )) {
             $ci++;
             last;
           }
@@ -685,6 +746,7 @@ sub BCUBED {
       $acumP += $ci / $ri if ($ri);
       $acumR += $ci / $ki if ($ki);
     }
+    $iterator += 1;
   }
 
   # Mentions in key
@@ -773,7 +835,7 @@ sub CEAF {
 }
 
 sub SIMEntityBased {
-  my ($a, $b) = @_;
+  my ($a, $b, $allowMultiple) = @_;
   my $intersection = 0;
 
   # Common elements in A and B
@@ -781,7 +843,7 @@ sub SIMEntityBased {
     next if (!defined($ma));
     foreach my $mb (@$b) {
       next if (!defined($mb));
-      if ($ma == $mb) {
+      if (CheckEqualityForEntityClusters($ma, $mb)) {
         $intersection++;
         last;
       }
@@ -798,7 +860,7 @@ sub SIMEntityBased {
 }
 
 sub SIMMentionBased {
-  my ($a, $b) = @_;
+  my ($a, $b, $allowMultiple) = @_;
   my $intersection = 0;
 
   # Common elements in A and B
@@ -806,7 +868,7 @@ sub SIMMentionBased {
     next if (!defined($ma));
     foreach my $mb (@$b) {
       next if (!defined($mb));
-      if ($ma == $mb) {
+      if (CheckEqualityForEntityClusters($ma, $mb)) {
         $intersection++;
         last;
       }
@@ -838,12 +900,14 @@ sub ShowRPF {
 
 # NEW
 sub ScoreBLANC {
-  my ($kFile, $rFile, $name) = @_;
+  my ($kFile, $rFile, $allowMultipleTagging, $name) = @_;
   my ($acumNRa, $acumDRa, $acumNPa, $acumDPa) = (0, 0, 0, 0);
   my ($acumNRr, $acumDRr, $acumNPr, $acumDPr) = (0, 0, 0, 0);
   my %idenTotals =
     (recallDen => 0, recallNum => 0, precisionDen => 0, precisionNum => 0);
 
+  my $allowMultiple = ( $allowMultipleTagging == 1 ) && defined($allowMultipleTagging);
+  
   if (defined($name) && $name ne 'none') {
     print "$name:\n" if ($VERBOSE);
     my $keys     = GetCoreference($kFile, $KEY_COLUMN,      $name);
@@ -851,8 +915,8 @@ sub ScoreBLANC {
     my (
       $keyChains, $keyChainsWithSingletonsFromResponse,
       $responseChains, $responseChainsWithoutMentionsNotInKey,
-      $keyChainsOrig, $responseChainsOrig
-    ) = IdentifMentions($keys, $response, \%idenTotals);
+      $keyChainsOrig, $responseChainsOrig,
+    ) = IdentifMentions($keys, $response, $allowMultiple, \%idenTotals);
     (
       $acumNRa, $acumDRa, $acumNPa, $acumDPa,
       $acumNRr, $acumDRr, $acumNPr, $acumDPr
@@ -874,7 +938,7 @@ sub ScoreBLANC {
         $keyChains,      $keyChainsWithSingletonsFromResponse,
         $responseChains, $responseChainsWithoutMentionsNotInKey,
         $keyChainsOrig,  $responseChainsOrig
-      ) = IdentifMentions($keys, $response, \%idenTotals);
+      ) = IdentifMentions($keys, $response, $allowMultiple, \%idenTotals);
       my ($nra, $dra, $npa, $dpa, $nrr, $drr, $npr, $dpr) =
         BLANC_Internal($keyChainsOrig, $responseChainsOrig);
 
@@ -1164,7 +1228,10 @@ sub BLANC_Internal {
 "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
     if ($VERBOSE > 2);
 
-  foreach my $e (@kcl, @rcl) { $union_cl{$e}++ && $isect_cl{$e}++ }
+  my @nkcl = normalizeChainList(@kcl);
+  my @nrcl = normalizeChainList(@rcl);
+	
+  foreach my $e (@nkcl, @nrcl) { $union_cl{$e}++ && $isect_cl{$e}++ }
 
   @union_cl = keys %union_cl;
   @isect_cl = keys %isect_cl;
@@ -1343,4 +1410,95 @@ sub ComputeBLANCFromCounts {
   return ($r_blanc, $p_blanc, $f_blanc);
 }
 
-1;
+# Checks equality for entityIDs for instance, it checks equality between entityIds "1" and "1,1"
+sub CheckEqualityForEntityClusters {
+  my ( $gold, $system ) = @_;
+
+  if ( $gold eq $system ) {
+	return 1;
+  }
+  # this takes care of multi-tagged entity references
+  if ( ( index( $gold, $DELIMITER ) != -1 ) || ( index( $system, $DELIMITER ) != -1 ) ) {
+	my @goldsplit = split( $DELIMITER, $gold );
+	my @syssplit  = split( $DELIMITER, $system );
+
+	if ( (@goldsplit)[0] eq (@syssplit)[0] ) {
+		return 1;
+	}
+  }
+ return 0;
+}
+
+# calculate all the instances of entityIds
+sub ComputeMentionTotal() {
+  my %mentionHash = %{ $_[0] };
+  my $count = 0;
+
+  for my $m ( values %mentionHash ) {
+	if ( index( $m, $DELIMITER ) != -1 ) {
+		my @temp = split( $DELIMITER, $m );
+		$count += scalar(@temp);
+	} else {
+		$count += 1;
+	}
+  }
+  return $count;
+}
+
+# checks if the index contains comma seperated entityId
+sub Definedm {
+  my ( $k, %idx ) = @_;
+  if ( defined( %idx->{$k} ) ) {
+	return $k;
+  } else {
+	for my $m ( keys %idx ) {
+	  #in case of multi-tagging same entity/event is tagged twice with same id so id,id should exist in the index
+	   my @indextocheck = split( $DELIMITER, $m );
+	   my @indexindict = split( $DELIMITER, $k );
+	   if (@indextocheck[0] == @indexindict[0]){
+	      return $m;
+	   } 
+     }
+  }
+}
+
+# calculates the intersection set of clusters for two entityIds
+sub CheckEqualityOfEntityInstances {
+  my ( $allowMultiple, $gold, $system ) = @_;
+
+  if (defined($gold) && defined($system)){
+	if ( $gold eq $system) {
+		return 1;
+	}
+
+  if ( $allowMultiple && ( (index( $gold, $DELIMITER ) != -1 ) || ( index( $system, $DELIMITER ) != -1 ) )) {
+    my @val1array = split( $DELIMITER, $gold );
+	my @val2array = split( $DELIMITER, $system );
+	my $overlap   = 0;
+	for my $v1 (@val1array) {
+	  for my $v2 (@val2array) {
+		if ( $v1 == $v2 ) {
+		  $overlap++;
+		  last;
+		}
+	  }
+	}	
+	return $overlap;	
+   }		
+  }
+  return 0;
+}
+
+sub normalizeChainList{
+	my (@links) = @_;
+	my @normalizedLinks;
+	for my $l (@links){
+		if (index($l, $DELIMITER) != -1){
+			my $slink = (split($DELIMITER, $l))[-1];
+			push(@normalizedLinks, $slink);
+		} else {
+			push(@normalizedLinks, $l);
+		}
+	}
+	return @normalizedLinks;
+}
