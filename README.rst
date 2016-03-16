@@ -12,6 +12,7 @@ Citation
 We would appreciate if you cite the paper when you use this scorer as some of us are academics or wanting to be academics, and citations matter.
 
   ::
+     
      @InProceedings{pradhan-EtAl:2014:P14-2,
      author    = {Pradhan, Sameer  and  Luo, Xiaoqiang  and  Recasens, Marta  and  Hovy, Eduard  and  Ng, Vincent  and  Strube, Michael},
      title     = {Scoring Coreference Partitions of Predicted Mentions: A Reference Implementation},
@@ -35,6 +36,7 @@ Usage
 
 
   ::
+     
      perl scorer.pl <metric> <key> <response> [<document-id>]
 
 
