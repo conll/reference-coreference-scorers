@@ -8,6 +8,11 @@ This is the official implementation of the revised coreference scorer used for C
 It addresses issues that prevented the consistent scoring of predicted mentions in the past.
 
 
+VERSION
+-------
+
+The current stable version is v8.01
+
 Citation
 --------
 
@@ -27,11 +32,6 @@ We would appreciate if you cite the paper when you use this scorer as some of us
      url       = {http://www.aclweb.org/anthology/P14-2006}
      }
 
-
-VERSION
--------
-
-The current stable version is v8.01
 
 Usage
 -----
