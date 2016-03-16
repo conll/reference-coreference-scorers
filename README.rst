@@ -4,7 +4,9 @@ Reference Coreference Scorer
 Description
 -----------
 
-This is the official implementation of the revised coreference scorer as described in the following paper:
+This is the official implementation of the revised coreference scorer used for CoNLL-2011/2012 shared tasks on coreference resolution.
+It addresses issues that prevented the consistent scoring of predicted mentions in the past.
+
 
 Citation
 --------
