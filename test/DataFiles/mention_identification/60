@@ -1,0 +1,88 @@
+#begin document (myTestCase); 
+test3	0	0	m	(1)
+test3	0	1	m	(2)
+test3	0	2	m	(3)
+test3	0	3	m	(4)
+test3	0	4	m	-
+test3	0	5	m	-
+test3	0	6	m	-
+test3	0	7	m	-
+test3	0	8	m	-
+test3	0	9	m	-
+
+test4	0	0	m	(1)
+test4	0	1	m	(2)
+test4	0	2	m	(3)
+test4	0	3	m	(4)
+test4	0	4	m	-
+test4	0	5	m	-
+test4	0	6	m	-
+test4	0	7	m	-
+test4	0	8	m	-
+test4	0	9	m	-
+
+test5	0	0	m	(1)
+test5	0	1	m	(2)
+test5	0	2	m	(3)
+test5	0	3	m	(4)
+test5	0	4	m	-
+test5	0	5	m	-
+test5	0	6	m	-
+test5	0	7	m	-
+test5	0	8	m	-
+test5	0	9	m	-
+test5	0	10	m	-
+test5	0	11	m	-
+test5	0	12	m	-
+test5	0	13	m	-
+test5	0	14	m	-
+test5	0	15	m	-
+test5	0	16	m	-
+test5	0	17	m	-
+test5	0	18	m	-
+test5	0	19	m	-
+
+test6	0	5	m	(1)
+test6	0	1	m	(2)
+test6	0	2	m	(3)
+test6	0	3	m	-
+test6	0	4	m	-
+
+test1	0	0	m	(1)
+test1	0	1	m	(2)
+test1	0	2	m	(3)
+test1	0	3	m	-
+test1	0	4	m	-
+
+test2	0	0	m	(1)
+test2	0	1	m	(2)
+test2	0	2	m	(3)
+test2	0	3	m	-
+test2	0	4	m	-
+
+test7	0	0	m	(1)
+test7	0	1	m	(2)
+test7	0	2	m	(3)
+test7	0	3	m	-
+
+test9	0	0	m	(1)
+test9	0	1	m	(2)
+test9	0	2	m	(1)
+test9	0	3	m	(2)
+test9	0	4	m	(1)
+test9	0	5	m	(2)
+test9	0	6	m	(1)
+test9	0	7	m	(2)
+test9	0	8	m	(1)
+test9	0	9	m	(3)
+test9	0	10	m	(1)
+test9	0	11	m	(3)
+test9	0	12	m	(1)
+test9	0	13	m	(4)
+test9	0	14	m	(1)
+test9	0	15	m	-
+test9	0	16	m	(1)
+test9	0	17	m	-
+test9	0	18	m	(1)
+test9	0	19	m	-
+#end document
