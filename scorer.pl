@@ -48,7 +48,7 @@ if ($metric !~ /^(muc|bcub|ebcub|ceafm|ceafe|blanc|lea|all)/i) {
 }
 
 if ($metric eq 'all') {
-  foreach my $m ('muc', 'bcub', 'ceafm', 'ceafe', 'blanc', 'lea') {
+  foreach my $m ('muc', 'bcub', 'ceafe', 'lea') {
     print "\nMETRIC $m:\n";
     &CorScorer::Score($m, @ARGV);
   }
