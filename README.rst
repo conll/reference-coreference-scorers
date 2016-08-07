@@ -121,6 +121,7 @@ AUTHORS
 * Sameer Pradhan, http://cemantix.org, pradhan <at> cemantix.org
 * Sebastian Martschat, sebastian.martschat <at> h-its.org
 * Xiaoqiang Luo, xql <at> google.com
+* Nafise Mosavi, nafise.moosavi <at> h-its.org
 
 
 COPYRIGHT
