@@ -32,7 +32,7 @@ use Data::Dumper;
 use Math::Combinatorics;
 use Cwd;
 
-our $VERSION = '9.0';
+our $VERSION = '9.0.0-alpha';
 print "version: " . $VERSION . " " . Cwd::realpath(__FILE__) . "\n";
 
 ##
