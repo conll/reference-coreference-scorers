@@ -157,7 +157,7 @@ C_k ^ C_r = {(de)} => R_c = |C_k^C_r| / |C_k| = 1/4, P_c = 1/|C_r| = 1/4, F_c = 
 N_k ^ N_r = {(bd), (be)} => R_n = |N_k^N_r|/|N_k| = 2/6,  P_n = 2/|N_r| = 2/6, F_n = 1/3
 
 BLANC = 1/2 (F_c + F_n) = 7/24.
-
+Expected: LEA  [Recall=(2*0+3/3)/5, Prec=(3*0+2)/5]
 
 
 
@@ -177,7 +177,7 @@ C_k ^ C_r = {(de), (fg)} => R_c = |C_k^C_r| / |C_k| = 2/5, P_c = 2/|C_r| = 2/5, 
 N_k ^ N_r = {(bd), (be), (bf), (bg), (cf), (cg), (df), (dg), (ef), (eg)} => R_n = |N_k^N_r|/|N_k| = 10/16,  P_n = 10/|N_r| = 10/16, F_n = 10/16 = 0.625
 
 BLANC = 1/2 (F_c + F_n) = 0.5125
-
+Expected: LEA  [Recall=(2*0+3/3+2)/7, Prec=(3*0+2+2)/7]
 
 
 # ------------ examples from the B-CUBED paper
@@ -207,7 +207,7 @@ response: {12345} {6789ABC}
 
 Expected: BCUB [r=12/12, p=16/21, f=0.864864865]
 Expected:  MUC [r=9/9, p=9/10, f=0.947368421]
-
+Expected: LEA  [Recall=(5+2+5)/12, Prec=(5+7*(11/21))/12]
 
 
 TC-E-1 -- merging two big clusters
@@ -224,7 +224,7 @@ key: {12345} {67} {89ABC}
 
 
 
-response: {123456789ABC} {67}
+response: {1234589ABC} {67}
 ---------
 
 1-2-3-4-5
@@ -236,7 +236,7 @@ response: {123456789ABC} {67}
 
 Expected: BCUB [r=1, p=7/12, f=0.736842105]
 Expected:  MUC [r=9/9, p=9/10, f=0.947368421]
-
+Expected: LEA  [Recall=(5+2+5)/12, Prec=(10*(20/45)+2)/12)
 
 # ---------- examples from the MUC paper
 
@@ -246,7 +246,7 @@ TC-F-1 --
 response: {AB} {CD} ---- Links: A-B; C-D
 
 Expected:  MUC [r=2/3, p=2/2, f=2*(2/3)*(2/2)/(2/3+2/2)]
-
+Expected: LEA  [Recall=4*(2/6)/4, Prec=(2+2)/4]
 
 
 TC-G-1 --
@@ -255,7 +255,7 @@ TC-G-1 --
 response: {ABCD}    ---- Links: A-B; B-C; C-D
 
 Expected:  MUC [r=2/2, p=2/3, f=2*(2/2)*(2/3)/(2/2+2/3)]
-
+Expected: LEA  [Recall=1, Prec=(4*2/6)/4]
 
 
 TC-H-1 --
@@ -264,7 +264,7 @@ TC-H-1 --
 response: {ABCD} ---- Links: A-B; B-C; C-D
 
 Expected:  MUC [r=1, p=1, f=1]
-
+Expected: LEA  [Recall=1, Prec=1]
 
 
 TC-I-1 --
@@ -273,7 +273,7 @@ TC-I-1 --
 response: {AB} {CD} ---- Links: A-B; C-D
 
 Expected:  MUC [r=2/3, p=2/2, f=2*(2/3)*(2/2)/(2/3+2/2)]
-
+Expected: LEA  [Recall=4*(2/6)/4, Prec=(2+2)/4]
 
 
 TC-J-1 --
@@ -282,7 +282,7 @@ TC-J-1 --
 response: {AC}  ---- Links: A-C
 
 Expected:  MUC [r=1/2, p=1/1, f=2*(1/2)*(1/1)/(1/2+1/1)]
-
+Expected: LEA  [Recall=(3*1/3)/3, Prec=1]
 
 
 TC-K-1 --
@@ -291,7 +291,7 @@ TC-K-1 --
 response: {ABC} {DEF} {GHI} ---- Links: A-B; B-C; D-E; E-F; G-H; H-I
 
 Expected:  MUC [r=3/6, p=3/6, f=3/6]
-
+Expected: LEA  [Recall=(7*(1+1+1)/21)/7, Prec=(3/3+3/3+3/3)/9]
 
 
 TC-L-1 --
